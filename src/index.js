@@ -1,19 +1,21 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
 import './index.css';
 import App from './App';
 import { Provider } from 'react-redux';
-import { store } from './store/config';
+import { persistor, store } from './store/config';
+import { PersistGate } from 'redux-persist/integration/react';
+import Loader from './components/page/Loader';
 
-const baseUrl = document.getElementsByTagName('base')[0].getAttribute('href');
+// const baseUrl = document.getElementsByTagName('base')[0].getAttribute('href');
 const root = ReactDOM.createRoot(document.getElementById('root'));
+
 root.render(
-	<BrowserRouter basename={baseUrl}>
-		<React.StrictMode>
-			<Provider store={store}>
+	<React.StrictMode>
+		<Provider store={store}>
+			<PersistGate loading={<Loader/>} persistor={persistor}>
 				<App />
-			</Provider>
-		</React.StrictMode>
-	</BrowserRouter>
+			</PersistGate>
+		</Provider>
+	</React.StrictMode>
 );

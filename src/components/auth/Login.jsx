@@ -4,7 +4,7 @@ import * as Yup from 'yup';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle, faWarning } from '@fortawesome/free-solid-svg-icons';
 import { useDispatch } from 'react-redux';
-import { updateUsername } from '../../store/userSlice';
+import { updateUsername } from '../../store/slices';
 import { Link } from 'react-router-dom';
 
 export default function Login(props) {
@@ -151,6 +151,7 @@ export default function Login(props) {
 						<Link to="/">
 							<Button type='submit'>Back</Button>
 						</Link>
+						
 					</form>
 				</Card>
 			</div>
