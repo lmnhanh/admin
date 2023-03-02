@@ -1,22 +1,20 @@
 import { Button } from 'flowbite-react';
 import axios from 'axios';
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
 import '../page/product/filepond.css';
 import FilePondPluginImageExifOrientation from 'filepond-plugin-image-exif-orientation';
 import FilePondPluginImagePreview from 'filepond-plugin-image-preview';
 import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css';
 import { FilePond, registerPlugin } from 'react-filepond';
-import SelectableInput from '../util/SelectableInput';
+import { useDispatch } from 'react-redux';
+import { setAuthorized } from '../../libs/store/slices';
+import StepWizard from 'react-step-wizard';
 
 registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
 
 export default function Dashboard(props) {
-	//const [loading, setLoading] = useState(false);
 	const [images, setImages] = useState([]);
-	const [categories, setCategories] = useState(null);
-	const navigate = useNavigate();
-
+	const dispatch = useDispatch();
 	const discover = async () => {
 		try {
 			const response = await axios.get('https://localhost:7028/api/images');
@@ -30,34 +28,48 @@ export default function Dashboard(props) {
 					}))
 				);
 			}
-		} catch (errors) {
-			navigate('/login', { replace: true });
+		} catch (error) {
+			error.response.status === 401 && dispatch(setAuthorized(false));
 		}
 	};
 
 	useEffect(() => {
-		axios.get('/api/categories').then((response) => {
-			console.log(response.data)
-			setCategories(
-				response.data.categories.map((item) => ({
-					value: item.id,
-					label: item.name,
-				}))
-			);
-		});
 		document.title = 'Trang chủ';
+		// try {
+		// 	axios.get('/api/categories').then((response) => {
+		// 		setCategories(
+		// 			response.data.categories.map((item) => ({
+		// 				value: item.id,
+		// 				label: item.name,
+		// 			}))
+		// 		);
+		// 	});
+		// } catch (error) {
+		// 	error.response.status === 401 && dispatch(setAuthorized(false));
+		// }
 	}, []);
 
 	return (
 		<div>
-			{categories !== null && <SelectableInput isSearchable={true} options={categories} />}
-			<Button
-				onClick={discover}
-				gradientDuoTone={'cyanToBlue'}
-				size={'xs'}
-				className={'w-fit'}>
-				Click đi
-			</Button>
+			<div className='my-3'>
+				
+			</div>
+			<div className='flex gap-2'>
+				<Button
+					size={'xs'}
+					onClick={() => {
+						dispatch(setAuthorized(false));
+					}}>
+					Xóa authorized
+				</Button>
+				<Button
+					onClick={discover}
+					gradientDuoTone={'cyanToBlue'}
+					size={'xs'}
+					className={'w-fit'}>
+					Click đi
+				</Button>
+			</div>
 			<FilePond
 				files={images}
 				server={{
@@ -79,8 +91,8 @@ export default function Dashboard(props) {
 						}
 
 						urltoFile(
-							`data:text/plain;base64,${response.data}`,
-							'1146811_5370495.jpg',
+							`data:text/plain;base64,${response.data.data}`,
+							response.data.name,
 							'image/jpg'
 						).then(function (file) {
 							load(file);
@@ -101,14 +113,6 @@ export default function Dashboard(props) {
 				name='images'
 				labelIdle='Kéo hoặc <span class="filepond--label-action">Chọn</span> hình cho sản phẩm'
 			/>
-			{/* <div className='grid grid-cols-3 place-content-center'>
-				{images &&
-					images.map((image, index) => (
-							<img className='w-96 max-h-min'
-								key={index}
-								src={`data:image/gif;base64,${image.content}`}></img>
-					))}
-			</div> */}
 		</div>
 	);
 }

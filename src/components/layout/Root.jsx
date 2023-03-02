@@ -12,11 +12,11 @@ export class Root extends Component {
 	}
 	render() {
 		return (
-			<div className='flex h-screen w-screen flex-col overflow-hidden'>
+			<div className='flex h-screen pb-5 flex-col overflow-hidden'>
 				<Header />
-				<div className='flex h-full w-full min-w-max'>
+				<div className='flex h-full pb-5 min-w-min'>
 					<MainSidebar />
-					<main className='flex-1 p-1 overflow-auto'>
+					<main className='flex-1 p-1 overflow-auto min-w-max'>
 						<Outlet />
 					</main>
 				</div>

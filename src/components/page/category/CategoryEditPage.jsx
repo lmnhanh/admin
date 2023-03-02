@@ -19,17 +19,18 @@ import {
 	TextInput,
 } from 'flowbite-react';
 import { useFormik } from 'formik';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Fragment } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import Loader from '../../util/Loader';
 import * as Yup from 'yup';
 import ToastPromise from '../../util/ToastPromise';
 import { ParseToDate } from './../../../libs/store/helper';
 import BreadcrumbPath from './../../util/BreadCrumbPath';
+import NotFound404 from './../../util/NotFound404';
 
 export default function CategoryEditPage(props) {
 	const { id } = useParams();
-	const [category, setCategory] = useState({});
+	const [category, setCategory] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [editing, setEditing] = useState(false);
 
@@ -90,11 +91,16 @@ export default function CategoryEditPage(props) {
 	useEffect(() => {
 		document.title = 'Thông tin loại hải sản';
 		const fetchData = async () => {
-			const response = await axios.get(`/api/categories/${id}`);
-			const { status, data } = response;
-			if (status === 200) {
+			try {
+				const response = await axios.get(`/api/categories/${id}`);
+				const { status, data } = response;
+				if (status === 200) {
+					setCategory(data);
+				}
+			} catch (error) {
+				error.response.status === 404 && setCategory(null);
+			}finally{
 				setLoading(false);
-				setCategory(data);
 			}
 		};
 		fetchData();
@@ -102,13 +108,22 @@ export default function CategoryEditPage(props) {
 
 	return loading ? (
 		<Loader />
-	) : (
-		<div>
-			<BreadcrumbPath items={[
-				{to: '/', text: <><FontAwesomeIcon icon={faHome} /> Home</>, },
-				{to: '/category', text: 'Loại sản phẩm' },
-				{to: `/category/edit/${id}`, text: category.name },
-			]}/>
+	) : category ? (
+		<Fragment>
+			<BreadcrumbPath
+				items={[
+					{
+						to: '/',
+						text: (
+							<>
+								<FontAwesomeIcon icon={faHome} /> Home
+							</>
+						),
+					},
+					{ to: '/category', text: 'Loại sản phẩm' },
+					{ to: `/category/edit/${id}`, text: category.name },
+				]}
+			/>
 			<div className='container relative'>
 				<Card>
 					{!editing && (
@@ -238,6 +253,8 @@ export default function CategoryEditPage(props) {
 					)}
 				</Card>
 			</div>
-		</div>
+		</Fragment>
+	) : (
+		<NotFound404 />
 	);
 }

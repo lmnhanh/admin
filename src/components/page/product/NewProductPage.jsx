@@ -3,7 +3,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useFormik } from 'formik';
 import BreadcrumbPath from './../../util/BreadCrumbPath';
 import * as yup from 'yup';
-import { Button, Card, Label, TextInput } from 'flowbite-react';
+import {
+	Badge,
+	Button,
+	Card,
+	Checkbox,
+	Label,
+	TextInput,
+} from 'flowbite-react';
 import { FilePond, registerPlugin } from 'react-filepond';
 import './filepond.css';
 import FilePondPluginImageExifOrientation from 'filepond-plugin-image-exif-orientation';
@@ -14,7 +21,11 @@ import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
 import SelectableInput from '../../util/SelectableInput';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, React, Fragment } from 'react';
+import TextEditor from './../../util/TextEditor';
+import ToastPromise from '../../util/ToastPromise';
+import { Link } from 'react-router-dom';
+import UpLoadImage from './UploadImage';
 
 registerPlugin(
 	FilePondPluginImageExifOrientation,
@@ -26,25 +37,60 @@ registerPlugin(
 export default function NewProductPage(props) {
 	const token = useSelector((state) => state.auth.token);
 	const [categories, setCategories] = useState([]);
+	const quillRef = useRef({ value: '' });
 
 	const formik = useFormik({
 		initialValues: {
 			name: '',
 			wellknownId: '',
-			desciption: '',
-			imageIds: [],
+			description: '',
 			categoryId: '',
 			isActive: true,
 			isRecommended: false,
 		},
 		validationSchema: yup.object({
-			name: yup.string().max(50, "Tối đa 50 kí tự").required('Tên sản phẩm không được trống!'),
-			wellknownId: yup.string()
+			name: yup
+				.string()
+				.max(50, 'Tối đa 50 kí tự')
+				.required('Tên sản phẩm không được trống!'),
+			wellknownId: yup
+				.string()
 				.max(20, 'Tối đa 20 kí tự!')
 				.required('Mã sản phẩm không được trống!'),
 		}),
-		onSubmit: (values) => {
-			console.log(values);
+		onSubmit: async (values) => {
+			formik.values.description = quillRef.current.value.toString();
+			ToastPromise(
+				axios.post('/api/products/', {
+					name: values.name,
+					wellknownId: values.wellknownId,
+					categoryId: values.categoryId,
+					description: values.description,
+					isActive: values.isActive,
+					isRecommended: values.isRecommended
+				}),
+				{
+					pending: 'Đang thêm sản phẩm',
+					success: (response) => {
+						//handleOnSuccess();
+						return (
+							<div className=''>
+								Đã thêm {response.data.name}
+								<Link to={`/product/edit/${response.data.id}`}>
+									<Badge size={'xs'} className='w-fit' color={'info'}>
+										Xem chi tiết
+									</Badge>
+								</Link>
+							</div>
+						);
+					},
+					error: (error) => {
+						//let errors = error.response.data.errors.join(', ');
+						console.log(error)
+						return error;
+					},
+				}
+			);
 		},
 	});
 
@@ -64,7 +110,7 @@ export default function NewProductPage(props) {
 	}, []);
 
 	return (
-		<div>
+		<div className='place-self-center'>
 			<BreadcrumbPath
 				items={[
 					{
@@ -80,10 +126,10 @@ export default function NewProductPage(props) {
 				]}
 			/>
 
-			<div className='container'>
+			<div className='container min-w-max'>
 				<Card>
 					<span className='mr-3 text-md font-bold'>Thêm sản phẩm mới</span>
-					<div className='grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3'>
+					<div className='grid grid-cols-2 gap-2 md:grid-cols-3'>
 						<div className='flex flex-col'>
 							<Label htmlFor='wellknownId'>Mã sản phẩm:</Label>
 							<TextInput
@@ -135,89 +181,46 @@ export default function NewProductPage(props) {
 								}
 							/>
 						</div>
-						<div className='flex flex-col w-full'>
+						<div className='flex flex-col w-full col-span-2 md:col-span-1'>
 							<Label htmlFor='name'>Loại sản phẩm:</Label>
 							<SelectableInput
 								isSearchable={true}
 								onChange={(selected) => {
-									formik.values.categoryId = selected.value
+									formik.values.categoryId = selected.value;
 								}}
 								options={categories ?? []}
 							/>
 						</div>
+						<div className='flex flex-col col-span-3 sm:col-span-2 row-span-2 w-full mb-10'>
+							<Label htmlFor='description'>Mô tả:</Label>
+							<TextEditor quillRef={quillRef} />
+						</div>
+						<div className='flex gap-2 ml-2 self-end mt-2 md:mt-0'>
+							<Checkbox
+								name='isActive'
+								id='isActive'
+								checked={formik.values.isActive}
+								onChange={formik.handleChange}
+							/>
+							<Label htmlFor='isActive' className='cursor-pointer'>
+								Đang kinh doanh
+							</Label>
+						</div>
+						<div className='flex gap-2 ml-2 self-start mt-2 md:mt-0'>
+							<Checkbox
+								name='isRecommended'
+								id='isRecommended'
+								checked={formik.values.isRecommended}
+								onChange={formik.handleChange}
+							/>
+							<Label htmlFor='isRecommended' className='cursor-pointer'>
+								Sản phẩm đề xuất
+							</Label>
+						</div>
 					</div>
-
-					<FilePond
-						files={formik.values.imageIds}
-						allowFileSizeValidation={true}
-						maxFileSize='2MB'
-						labelMaxFileSize='< 2MB'
-						labelMaxFileSizeExceeded='Ảnh quá lớn'
-						allowFileTypeValidation={true}
-						allowReorder={true}
-						acceptedFileTypes={['image/*']}
-						labelFileTypeNotAllowed='Chỉ chọn ảnh!'
-						server={{
-							process: {
-								url: 'https://localhost:7028/api/products/UploadImage',
-								method: 'POST',
-								headers: {
-									Authorization: `Bearer ${token}`,
-								},
-								withCredentials: false,
-								onload: (response) => {
-									console.log(response)
-									formik.values.imageIds.push({source: response, options: {
-										type: 'local'
-									}});
-								},
-							},
-							load: async (source, load, error, progress, abort, headers) => {
-								const response = await axios.get(`/api/images/${source}`);
-		
-								async function urltoFile(url, filename, mimeType) {
-									const res = await fetch(url);
-									const buf = await res.arrayBuffer();
-									return new File([buf], filename, { type: mimeType });
-								}
-		
-								urltoFile(
-									`data:text/plain;base64,${response.data}`,
-									'1146811_5370495.jpg',
-									'image/jpg'
-								).then(function (file) {
-									load(file);
-								});
-								error('oh my goodness');
-								//headers(headersString);
-								//progress(true, 0, 1024);
-								return {
-									abort: () => {
-										abort();
-									},
-								};
-							},
-							remove: async (source, load, error) => {
-								const response = await axios.delete(`/api/images/${source}`);
-								const { status } = response;
-								if(status === 204){
-									let index = formik.values.imageIds.findIndex(image => image.source === source);
-									formik.values.imageIds.splice(index,1)
-									load();
-								} else error('Lỗi!');
-								//load();
-							},
-							fetch: null,
-							revert: null,
-						}}
-						allowMultiple={true}
-						allowRevert={false}
-						allowDrop={true}
-						maxFiles={10}
-						name='images'
-						labelIdle='Kéo hoặc <span class="filepond--label-action">chọn</span> hình cho sản phẩm'
-					/>
-					<Button onClick={formik.handleSubmit}>Submit</Button>
+					<Button size={'xs'} className={'w-fit p-1 self-center'} onClick={formik.handleSubmit}>
+						Thêm
+					</Button>
 				</Card>
 			</div>
 		</div>

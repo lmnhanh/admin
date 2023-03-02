@@ -1,14 +1,6 @@
 import axios from 'axios';
-import React, { useCallback, useEffect, useState } from 'react';
-import {
-	Badge,
-	Modal,
-	Label,
-	Select,
-	Breadcrumb,
-	Card,
-	Button,
-} from 'flowbite-react';
+import React, { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import { Badge, Modal, Label, Select, Card, TextInput } from 'flowbite-react';
 import Loader from '../../util/Loader';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -17,7 +9,7 @@ import {
 	faFilter,
 	faGear,
 	faHome,
-	faPlus,
+	faICursor,
 	faRotate,
 	faSort,
 	faSortAlphaDesc,
@@ -25,35 +17,29 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 import FilterBadge from '../../util/FilterBadge';
-import { Link, useNavigate } from 'react-router-dom';
 import CategoryList from '../../list/CategoryList';
-import NewCateforyPage from './NewCategoryPage';
 import { useSelector, useDispatch } from 'react-redux';
 import {
 	setFilter,
+	setName,
 	setOptionToDefault,
 	setOrder,
 	setSort,
 } from '../../../libs/store/categorySlice';
 import ReactPaginate from 'react-paginate';
 import BreadcrumbPath from './../../util/BreadCrumbPath';
+import { setAuthorized } from '../../../libs/store/slices';
 
 export default function CategoryListPage(props) {
-	const [categories, setCategories] = useState([]);
+	const [categories, setCategories] = useState(null);
 	const [showOption, setShowOption] = useState(false);
-	const [showAddModal, setShowAddModal] = useState(false);
 	const [pageNo, setPageNo] = useState(1);
 	const [totalPage, setTotalPage] = useState(1);
 	const [totalCategories, setTotalCategories] = useState(0);
 	const [pagesize, setPagesize] = useState(5);
 
-	const navigate = useNavigate();
-
-	const { filter, order, sort } = useSelector((state) => ({
-		filter: state.category.filter,
-		order: state.category.order,
-		sort: state.category.sort,
-	}));
+	const { filter, order, sort, name } = useSelector((state) => state.category);
+	const searchInput = useRef({value: name});
 	const dispatch = useDispatch();
 
 	const FilterOption = [
@@ -87,11 +73,10 @@ export default function CategoryListPage(props) {
 	];
 
 	const fetchData = useCallback(async () => {
-		//try {
+		try {
 			const response = await axios.get(
-				`/api/categories?page=${pageNo}&size=${pagesize}&filter=${filter}&sort=${sort}&order=${order}`
+				`/api/categories?page=${pageNo}&size=${pagesize}&name=${name}&filter=${filter}&sort=${sort}&order=${order}`
 			);
-
 			const { data, status } = response;
 			if (status === 200) {
 				data.categories.length === 0 && setPageNo(1);
@@ -99,13 +84,18 @@ export default function CategoryListPage(props) {
 				setTotalPage(data.totalPages);
 				setCategories(data.categories);
 			}
-		// } catch (errors) {
-		// 	navigate('/login',{replace : true})
-		// }
-	}, [pageNo, pagesize, filter, sort, order]);
+		} catch (errors) {
+			errors.response.status === 401 &&
+				dispatch(setAuthorized({ authorized: false }));
+		}
+	}, [pageNo, pagesize, filter, sort, order, name, dispatch]);
 
 	useEffect(() => {
-		document.title = 'Danh sách loại sản phẩm';
+		document.title = 'Danh sách sản phẩm';
+	}, []);
+
+	useEffect(() => {
+		document.title = 'Danh sách sản phẩm';
 		fetchData();
 	}, [fetchData]);
 
@@ -152,53 +142,40 @@ export default function CategoryListPage(props) {
 		dispatch(setOptionToDefault());
 	};
 
-	const handleGetNewestUpdate = () => {
-		handlePageChange(1);
-		setShowAddModal(false);
-		dispatch(setOptionToDefault());
-		fetchData();
-	};
-
 	const handleShowOption = () => {
 		setShowOption((prev) => !prev);
 	};
 
-	const handleShowAddModal = () => {
-		setShowAddModal((prev) => !prev);
-	};
-
 	return (
 		<div>
-			<BreadcrumbPath items={[
-				{to: '/', text: <><FontAwesomeIcon icon={faHome} /> Home</>, },
-				{to: '/category', text: 'Loại sản phẩm' }
-			]}/>
-			
-			<Modal
-				show={showAddModal}
-				dismissible={true}
-				size={'sm'}
-				onClose={handleShowAddModal}>
-				<Modal.Header>Thêm loại hải sản</Modal.Header>
-				<Modal.Body>
-					<NewCateforyPage handleOnSuccess={handleGetNewestUpdate} />
-				</Modal.Body>
-			</Modal>
+			<BreadcrumbPath
+				items={[
+					{
+						to: '/',
+						text: (
+							<>
+								<FontAwesomeIcon icon={faHome} /> Home
+							</>
+						),
+					},
+					{ to: '/category', text: 'Loại sản phẩm' },
+				]}
+			/>
 
-			{categories.length === 0 ? (
+			{categories === null ? (
 				<Loader size={'lg'} />
 			) : (
 				<div className='container relative'>
 					<Card>
-						<Button
-							size={'xs'}
+						{/* <Button
+							size={'sm'}
 							gradientDuoTone={'greenToBlue'}
 							onClick={handleShowAddModal}
-							className='md:w-fit absolute md:top-3 md:right-3 xs:hidden'>
+							className='md:w-fit absolute md:top-5 md:right-4 xs:hidden'>
 							<FontAwesomeIcon icon={faPlus} className='w-4 h-4 mr-1' />
 							Thêm loại
-						</Button>
-						<div className='text-md font-bold flex gap-2'>
+						</Button> */}
+						<div className='text-md font-bold items-center flex gap-2'>
 							<span className='mr-3'>Danh sách loại hải sản</span>
 
 							{FilterOption.map(
@@ -213,6 +190,15 @@ export default function CategoryListPage(props) {
 										/>
 									)
 							)}
+
+							{/* {name && (
+								<FilterBadge
+									color={'purple'}
+									label={`Tên: "${name}"`}
+									handleOnClose={() => handleFilterOnClick(filter)}
+									icon={faICursor}
+								/>
+							)} */}
 
 							{SortOption.map(
 								(opt, index) =>
@@ -258,6 +244,29 @@ export default function CategoryListPage(props) {
 								size={'xs'}>
 								<FontAwesomeIcon icon={faRotate} />
 							</Badge>
+							<TextInput
+								className='font-medium'
+								type={'search'}
+								spellCheck={false}
+								ref={searchInput}
+								defaultValue={searchInput.current.value}
+								sizing={'sm'}
+								maxLength={20}
+								autoFocus={true}
+								onChange={(event)=>{
+									if(event.target.value.length === 0){
+										event.preventDefault();
+										dispatch(setName(event.target.value));
+									}
+								}}
+								onKeyDown={(event) => {
+									if (event.key === 'Enter') {
+										event.preventDefault();
+										dispatch(setName(event.target.value));
+									}
+								}}
+								placeholder={'Tìm kiếm'}
+							/>
 						</div>
 
 						<Modal
@@ -313,54 +322,63 @@ export default function CategoryListPage(props) {
 							</Modal.Body>
 						</Modal>
 
-						<CategoryList data={categories} />
-						<div className='flex justify-center'>
-							{totalPage !== 1 && (
-								// <Pagination
-								// 	className='mt-0 pt-0'
-								// 	currentPage={pageNo}
-								// 	onPageChange={handlePageChange}
-								// 	previousLabel={<FontAwesomeIcon icon={faArrowLeft} />}
-								// 	nextLabel={<FontAwesomeIcon icon={faArrowRight} />}
-								// 	totalPages={totalPage}
-								// />
-								<ReactPaginate
-									className='flex items-center rounded-md w-fit self-center m-2 gap-1'
-									breakLabel='...'
-									nextLabel={
-										<FontAwesomeIcon
-											icon={faAngleRight}
-											className='w-10 py-1'
+						{categories.length === 0 ? (
+							<div className='text-center'>Danh sách loại sản phẩm trống!</div>
+						) : (
+							<Fragment>
+								<CategoryList data={categories} highlightText={name} />
+								<div className='flex justify-center'>
+									{totalPage !== 1 && (
+										// <Pagination
+										// 	className='mt-0 pt-0'
+										// 	currentPage={pageNo}
+										// 	onPageChange={handlePageChange}
+										// 	previousLabel={<FontAwesomeIcon icon={faArrowLeft} />}
+										// 	nextLabel={<FontAwesomeIcon icon={faArrowRight} />}
+										// 	totalPages={totalPage}
+										// />
+										<ReactPaginate
+											className='flex items-center rounded-md w-fit self-center m-2 gap-1'
+											breakLabel='...'
+											nextLabel={
+												<FontAwesomeIcon
+													icon={faAngleRight}
+													className='w-10 py-1'
+												/>
+											}
+											nextClassName={'text-gray-500 font-bold text-center'}
+											previousLabel={
+												<FontAwesomeIcon
+													icon={faAngleLeft}
+													className='w-10 py-1'
+												/>
+											}
+											previousClassName={'text-center text-gray-500 font-bold'}
+											onPageChange={(e) => handlePageChange(e.selected + 1)}
+											pageClassName={
+												'border border-gray-300 rounded flex items-center justify-center'
+											}
+											activeClassName={
+												'bg-blue-200 bg-gradient-to-br text-blue-600 font-semibold'
+											}
+											pageLinkClassName={'w-10 py-1 text-center align-middle'}
+											pageRangeDisplayed={2}
+											pageCount={totalPage}
+											renderOnZeroPageCount={null}
 										/>
-									}
-									nextClassName={'text-gray-500 font-bold text-center'}
-									previousLabel={
-										<FontAwesomeIcon icon={faAngleLeft} className='w-10 py-1' />
-									}
-									previousClassName={'text-center text-gray-500 font-bold'}
-									onPageChange={(e) => handlePageChange(e.selected + 1)}
-									pageClassName={
-										'border border-gray-300 rounded flex items-center justify-center'
-									}
-									activeClassName={
-										'bg-blue-200 bg-gradient-to-br text-blue-600 font-semibold'
-									}
-									pageLinkClassName={'w-10 py-1 text-center align-middle'}
-									pageRangeDisplayed={2}
-									pageCount={totalPage}
-									renderOnZeroPageCount={null}
-								/>
-							)}
-							<Select
-								sizing={'sm'}
-								name='perpage'
-								onChange={(e) => handleChangePagesize(e.target.value)}
-								className='w-fit h-fit mt-2 bg-gray-50 border text-middle border-gray-300 text-gray-900 text-sm rounded-lg'>
-								<option value={'5'}>5 loại</option>
-								<option value={'10'}>10 loại</option>
-								<option value={'15'}>15 loại</option>
-							</Select>
-						</div>
+									)}
+									<Select
+										sizing={'sm'}
+										name='perpage'
+										onChange={(e) => handleChangePagesize(e.target.value)}
+										className='w-fit h-fit mt-2 bg-gray-50 border text-middle border-gray-300 text-gray-900 text-sm rounded-lg'>
+										<option value={'5'}>5 loại</option>
+										<option value={'10'}>10 loại</option>
+										<option value={'15'}>15 loại</option>
+									</Select>
+								</div>
+							</Fragment>
+						)}
 					</Card>
 				</div>
 			)}

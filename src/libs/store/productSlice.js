@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-export const categorySlice = createSlice({
-	name: 'category',
+export const productSlice = createSlice({
+	name: 'product',
 	initialState: {
 		name: '',
 		filter: 'active',
@@ -36,5 +36,5 @@ export const categorySlice = createSlice({
 		}
 	}
 });
-export const {setFilter, setOrder, setSort, setName, setOptionToDefault, setOptionToNewest} = categorySlice.actions
-export const categoryReducer =  categorySlice.reducer
+export const {setFilter, setOrder, setSort, setName, setOptionToDefault, setOptionToNewest} = productSlice.actions
+export const productReducer =  productSlice.reducer

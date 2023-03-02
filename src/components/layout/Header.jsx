@@ -4,7 +4,7 @@ import { Button } from 'flowbite-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars } from '@fortawesome/free-solid-svg-icons';
-import { setToken, toggleSidebar, updateUsername } from '../../libs/store/slices';
+import { setAuthorized, toggleSidebar} from '../../libs/store/slices';
 
 export default function Header(props) {
 	const { name } = useSelector((state) => {
@@ -12,7 +12,6 @@ export default function Header(props) {
 	});
 
 	const dispatch = useDispatch();
-	const navigate = useNavigate();
 
 	return(
 		<Navbar fluid={true} rounded={true} className={'w-full'}>
@@ -34,9 +33,9 @@ export default function Header(props) {
 						gradientMonochrome={'info'}
 						size={'sm'}
 						onClick={() => {
-							dispatch(updateUsername(undefined));
-							dispatch(setToken(''))
-							navigate('/login', { replace: true });
+							// dispatch(updateUsername(undefined));
+							// dispatch(setToken(''))
+							dispatch(setAuthorized({authorized :false}))
 						}}>
 						{name}
 					</Button>

@@ -1,12 +1,12 @@
 import axios from 'axios';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import {
 	Badge,
 	Modal,
 	Label,
 	Select,
 	Card,
-	Button,
+	TextInput,
 } from 'flowbite-react';
 import Loader from '../../util/Loader';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -16,7 +16,6 @@ import {
 	faFilter,
 	faGear,
 	faHome,
-	faPlus,
 	faRotate,
 	faSort,
 	faSortAlphaDesc,
@@ -24,35 +23,30 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 import FilterBadge from '../../util/FilterBadge';
-import { Link, useNavigate } from 'react-router-dom';
-import NewCateforyPage from '../category/NewCategoryPage';
 import { useSelector, useDispatch } from 'react-redux';
 import {
 	setFilter,
+	setName,
 	setOptionToDefault,
 	setOrder,
 	setSort,
-} from '../../../libs/store/categorySlice';
+} from '../../../libs/store/productSlice';
 import ReactPaginate from 'react-paginate';
 import ProductList from './../../list/ProductList';
 import BreadcrumbPath from './../../util/BreadCrumbPath';
+import { setAuthorized } from '../../../libs/store/slices';
 
 export default function ProductListPage(props) {
-	const [categories, setCategories] = useState([]);
+	const [products, setproducts] = useState(null);
 	const [showOption, setShowOption] = useState(false);
-	const [showAddModal, setShowAddModal] = useState(false);
 	const [pageNo, setPageNo] = useState(1);
 	const [totalPage, setTotalPage] = useState(1);
-	const [totalCategories, setTotalCategories] = useState(0);
+	const [totalproducts, setTotalproducts] = useState(0);
 	const [pagesize, setPagesize] = useState(5);
 
-	const navigate = useNavigate();
-
-	const { filter, order, sort } = useSelector((state) => ({
-		filter: state.category.filter,
-		order: state.category.order,
-		sort: state.category.sort,
-	}));
+	
+	const { filter, order, sort, name } = useSelector((state) => state.product);
+	const searchInput = useRef({value: name});
 	const dispatch = useDispatch();
 
 	const FilterOption = [
@@ -87,24 +81,26 @@ export default function ProductListPage(props) {
 
 	const fetchData = useCallback(async () => {
 		try {
-			const response = await axios.get(
-				`/api/products?page=${pageNo}&size=${pagesize}&filter=${filter}&sort=${sort}&order=${order}`
+			const { data, status } = await axios.get(
+				`/api/products?name=${name}&page=${pageNo}&size=${pagesize}&filter=${filter}&sort=${sort}&order=${order}`
 			);
 
-			const { data, status } = response;
 			if (status === 200) {
 				data.products.length === 0 && setPageNo(1);
-				setTotalCategories(data.totalRows);
+				setTotalproducts(data.totalRows);
 				setTotalPage(data.totalPages);
-				setCategories(data.products);
+				setproducts(data.products);
 			}
-		} catch (errors) {
-			navigate('/login', { replace: true });
+		} catch (error) {
+			error.response.status === 401 && dispatch(setAuthorized({ authorized: false }));
 		}
-	}, [pageNo, pagesize, filter, sort, order, navigate]);
+	}, [pageNo, pagesize, filter, sort, order, name, dispatch]);
+
+	useEffect(()=>{
+		document.title = 'Danh sách loại sản phẩm';
+	},[])
 
 	useEffect(() => {
-		document.title = 'Danh sách loại sản phẩm';
 		fetchData();
 	}, [fetchData]);
 
@@ -151,49 +147,31 @@ export default function ProductListPage(props) {
 		dispatch(setOptionToDefault());
 	};
 
-	const handleGetNewestUpdate = () => {
-		handlePageChange(1);
-		setShowAddModal(false);
-		dispatch(setOptionToDefault());
-		fetchData();
-	};
-
 	const handleShowOption = () => {
 		setShowOption((prev) => !prev);
 	};
 
-	const handleShowAddModal = () => {
-		setShowAddModal((prev) => !prev);
-	};
-
 	return (
 		<div>
-			<BreadcrumbPath items={[
-				{to: '/', text: <><FontAwesomeIcon icon={faHome} /> Home</>, },
-				{to: '/product', text: 'Sản phẩm' },
-			]}/>
-			<Modal
-				show={showAddModal}
-				dismissible={true}
-				size={'sm'}
-				onClose={handleShowAddModal}>
-				<Modal.Header>Thêm loại hải sản</Modal.Header>
-				<Modal.Body>
-					<NewCateforyPage handleOnSuccess={handleGetNewestUpdate} />
-				</Modal.Body>
-			</Modal>
-			{categories.length === 0 ? (
+			<BreadcrumbPath
+				items={[
+					{
+						to: '/',
+						text: (
+							<>
+								<FontAwesomeIcon icon={faHome} /> Home
+							</>
+						),
+					},
+					{ to: '/product', text: 'Sản phẩm' },
+				]}
+			/>
+			{products === null ? (
 				<Loader size={'lg'} />
 			) : (
-				<div className='container relative'>
+				<div className='container'>
 					<Card>
-						<Link to={'/product/new'} className='md:w-fit absolute md:top-3 md:right-3 xs:hidden'>
-							<Button size={'xs'} gradientDuoTone={'greenToBlue'}>
-								<FontAwesomeIcon icon={faPlus} className='w-4 h-4 mr-1' />
-								Thêm sản phẩm
-							</Button>
-						</Link>
-						<div className='text-md font-bold flex gap-2'>
+						<div className='text-md font-bold items-center flex gap-2'>
 							<span className='mr-3'>Danh sách sản phẩm</span>
 
 							{FilterOption.map(
@@ -238,7 +216,7 @@ export default function ProductListPage(props) {
 									icon={faSortAlphaUpAlt}
 								/>
 							)}
-							<Badge color={'success'}>{totalCategories} loại</Badge>
+							<Badge color={'success'}>{totalproducts} loại</Badge>
 							<Badge
 								color={'purple'}
 								size={'xs'}
@@ -253,6 +231,29 @@ export default function ProductListPage(props) {
 								size={'xs'}>
 								<FontAwesomeIcon icon={faRotate} />
 							</Badge>
+							<TextInput
+								className='font-medium'
+								type={'search'}
+								ref={searchInput}
+								defaultValue={searchInput.current.value}
+								sizing={'sm'}
+								maxLength={20}
+								autoFocus={true}
+								spellCheck={false}
+								onChange={(event)=>{
+									if(event.target.value.length === 0){
+										event.preventDefault();
+										dispatch(setName(event.target.value));
+									}
+								}}
+								onKeyDown={(event) => {
+									if (event.key === 'Enter') {
+										event.preventDefault();
+										dispatch(setName(event.target.value));
+									}
+								}}
+								placeholder={'Tìm kiếm'}
+							/>
 						</div>
 
 						<Modal
@@ -307,55 +308,63 @@ export default function ProductListPage(props) {
 								</div>
 							</Modal.Body>
 						</Modal>
-
-						<ProductList data={categories} />
-						<div className='flex justify-center'>
-							{totalPage !== 1 && (
-								// <Pagination
-								// 	className='mt-0 pt-0'
-								// 	currentPage={pageNo}
-								// 	onPageChange={handlePageChange}
-								// 	previousLabel={<FontAwesomeIcon icon={faArrowLeft} />}
-								// 	nextLabel={<FontAwesomeIcon icon={faArrowRight} />}
-								// 	totalPages={totalPage}
-								// />
-								<ReactPaginate
-									className='flex items-center rounded-md w-fit self-center m-2 gap-1'
-									breakLabel='...'
-									nextLabel={
-										<FontAwesomeIcon
-											icon={faAngleRight}
-											className='w-10 py-1'
+						{products.length !== 0 ? (
+							<Fragment>
+								<ProductList data={products} highlightText={name}/>
+								<div className='flex justify-center'>
+									{totalPage !== 1 && (
+										// <Pagination
+										// 	className='mt-0 pt-0'
+										// 	currentPage={pageNo}
+										// 	onPageChange={handlePageChange}
+										// 	previousLabel={<FontAwesomeIcon icon={faArrowLeft} />}
+										// 	nextLabel={<FontAwesomeIcon icon={faArrowRight} />}
+										// 	totalPages={totalPage}
+										// />
+										<ReactPaginate
+											className='flex items-center rounded-md w-fit self-center m-2 gap-1'
+											breakLabel='...'
+											nextLabel={
+												<FontAwesomeIcon
+													icon={faAngleRight}
+													className='w-10 py-1'
+												/>
+											}
+											nextClassName={'text-gray-500 font-bold text-center'}
+											previousLabel={
+												<FontAwesomeIcon
+													icon={faAngleLeft}
+													className='w-10 py-1'
+												/>
+											}
+											previousClassName={'text-center text-gray-500 font-bold'}
+											onPageChange={(e) => handlePageChange(e.selected + 1)}
+											pageClassName={
+												'border border-gray-300 rounded flex items-center justify-center'
+											}
+											activeClassName={
+												'bg-blue-200 bg-gradient-to-br text-blue-600 font-semibold'
+											}
+											pageLinkClassName={'w-10 py-1 text-center align-middle'}
+											pageRangeDisplayed={2}
+											pageCount={totalPage}
+											renderOnZeroPageCount={null}
 										/>
-									}
-									nextClassName={'text-gray-500 font-bold text-center'}
-									previousLabel={
-										<FontAwesomeIcon icon={faAngleLeft} className='w-10 py-1' />
-									}
-									previousClassName={'text-center text-gray-500 font-bold'}
-									onPageChange={(e) => handlePageChange(e.selected + 1)}
-									pageClassName={
-										'border border-gray-300 rounded flex items-center justify-center'
-									}
-									activeClassName={
-										'bg-blue-200 bg-gradient-to-br text-blue-600 font-semibold'
-									}
-									pageLinkClassName={'w-10 py-1 text-center align-middle'}
-									pageRangeDisplayed={2}
-									pageCount={totalPage}
-									renderOnZeroPageCount={null}
-								/>
-							)}
-							<Select
-								sizing={'sm'}
-								name='perpage'
-								onChange={(e) => handleChangePagesize(e.target.value)}
-								className='w-fit h-fit mt-2 bg-gray-50 border text-middle border-gray-300 text-gray-900 text-sm rounded-lg'>
-								<option value={'5'}>5 sản phẩm</option>
-								<option value={'10'}>10 sản phẩm</option>
-								<option value={'15'}>15 sản phẩm</option>
-							</Select>
-						</div>
+									)}
+									<Select
+										sizing={'sm'}
+										name='perpage'
+										onChange={(e) => handleChangePagesize(e.target.value)}
+										className='w-fit h-fit mt-2 bg-gray-50 border text-middle border-gray-300 text-gray-900 text-sm rounded-lg'>
+										<option value={'5'}>5 sản phẩm</option>
+										<option value={'10'}>10 sản phẩm</option>
+										<option value={'15'}>15 sản phẩm</option>
+									</Select>
+								</div>
+							</Fragment>
+						) : (
+							<div className='text-danger'>Danh sách sản phẩm trống!</div>
+						)}
 					</Card>
 				</div>
 			)}

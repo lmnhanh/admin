@@ -1,31 +1,32 @@
 import axios from 'axios';
-import jwtDecode from 'jwt-decode';
-import { useEffect, useState } from 'react';
-import { useStore, useSelector, useDispatch } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { Navigate, Outlet } from 'react-router-dom';
-import { setAuthorized, setToken } from '../../libs/store/slices';
-import NotFound404 from './../util/NotFound404';
+import { setAuthorized } from '../../libs/store/slices';
 
 export default function ProtectedRoute({ redirectPath = '/login', children }) {
-	const token = useSelector((state) => state.auth.token);
-	const { client_id, scope } = jwtDecode(token);
-	const dispatch = useDispatch();
-	const authorized = useSelector((state) => state.auth.authorized);
 
+	const authorized = useSelector((state) => state.auth.authorized);
+	const dispatch = useDispatch();
+	
+	const token = useSelector((state) => state.auth.token);
 	axios.defaults.baseURL = 'https://localhost:7028';
 	axios.defaults.headers.common['Authorization'] = `Bearer ${token ?? ''}`;
 
-	const connect = async () => {
-		//try{
-			const { status } = await axios.post('/discovery');
-			dispatch(setAuthorized(status === 200));
-		// }
-		// catch(errors){
-		// 	setAuthorized(false);
-		// }
-	};
+	//const { client_id, scope } = jwtDecode(token);
 
-	useEffect(() => {
+	// const connect = async () => {
+	// 	try{
+	// 		const { status } = await axios.post('/discovery');
+	// 		console.log('check')
+	// 		dispatch(setAuthorized(status === 200));
+	// 	}
+	// 	catch(errors){
+	// 		dispatch(setAuthorized(false));
+	// 	}
+	// };
+
+	// useEffect(() => {
+	// 	token ?? dispatch(setAuthorized(true))
 		// try {
 			// const { kid } = jwtDecode(token, { header: true });
 
@@ -37,14 +38,16 @@ export default function ProtectedRoute({ redirectPath = '/login', children }) {
 			// 	console.log('pass');
 			// 	setAuthorized(true);
 			// }
-			connect();
+			//connect();
 		// } catch (error) {
 		// 	console.log('some errors');
 		// 	setAuthorized(false);
 		// 	//return <NotFound404/>;
 		// }
-	}, []);
-	return authorized ? (children ? children: <Outlet/>) : <Navigate to={redirectPath} />;
+//	}, []);
+
+	if(authorized === false && token !== '') dispatch(setAuthorized({token: token, authorized: true}));
+	return authorized ? (children ? children: <Outlet/>) : <Navigate to={redirectPath} replace={true}/>;
 	// if (!token) {
 	// 	axios.post(
 	// 			'https://localhost:5001/connect/token',

@@ -7,7 +7,7 @@ import { faHome, faShrimp, faTags } from '@fortawesome/free-solid-svg-icons';
 import { faRightToBracket } from '@fortawesome/free-solid-svg-icons';
 import ProtectedRoute from '../auth/ProtectedRoute';
 
-const activeClassName = 'bg-blue-200 font-semibold'
+const activeClassName = 'bg-gradient-to-r from-cyan-200 to-blue-200'
 
 export default function MainSidebar(props) {
 	const { pathname } = useLocation();
@@ -16,7 +16,7 @@ export default function MainSidebar(props) {
 	});
 
 	return (
-		<Sidebar collapsed={collapsed}>
+		<Sidebar collapsed={collapsed} className={'w-fit'}>
 			<Sidebar.Items>
 				<Sidebar.ItemGroup>
 					<Sidebar.Item

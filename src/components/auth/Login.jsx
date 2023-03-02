@@ -5,15 +5,17 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWarning } from '@fortawesome/free-solid-svg-icons';
 import { useDispatch } from 'react-redux';
 import axios from 'axios';
-import { setScope, setToken, updateUsername } from '../../libs/store/slices';
-import { useNavigate } from 'react-router-dom';
+import { setAuthorized, updateUsername } from '../../libs/store/slices';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Loader from '../util/Loader';
 import { useState } from 'react';
+import useQuery from './../util/useQuery';
 
 export default function Login(props) {
 	const [login, setLogin] = useState(false);
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
+	const query = useQuery()
 
 	const formik = useFormik({
 		initialValues: {
@@ -35,14 +37,15 @@ export default function Login(props) {
 			});
 			const { status, data } = response;
 			if (status === 200) {
-				dispatch(setToken(data.access_token));
-				dispatch(setScope(data.scope));
+				//dispatch(setToken(data.access_token));
+				//dispatch(setScope(data.scope));
+				dispatch(setAuthorized({token: data.access_token, authorized: true}));
 				dispatch(updateUsername(values.email));
-				navigate('/', { replace: true });
+				navigate(`/${query.get('returnUrl')??''}`, { replace: true });
 			}
 		},
 	});
-
+	
 	return (
 		<div className='flex justify-center h-screen min-w-min'>
 			<div className='w-full mt-20 sm:w-1/2 lg:w-1/3'>

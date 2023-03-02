@@ -2,7 +2,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button } from 'flowbite-react';
 import { Fragment } from 'react';
 import { Link, Outlet } from 'react-router-dom';
-import { faBars, faChartLine} from '@fortawesome/free-solid-svg-icons';
+import { faBars, faChartLine, faPlus } from '@fortawesome/free-solid-svg-icons';
 
 export default function ProductMainPage(props) {
 	return (
@@ -17,13 +17,22 @@ export default function ProductMainPage(props) {
 						Danh sách sản phẩm
 					</Button>
 				</Link>
-        <Link to={'/product/overall'}>
+				<Link to={'/product/overall'}>
 					<Button
 						className='w-fit h-8 rounded-lg text-center'
 						size={'xs'}
 						gradientDuoTone={'cyanToBlue'}>
 						<FontAwesomeIcon icon={faChartLine} className='pr-2 w-4 h-4' />
 						Thống kê tổng quát
+					</Button>
+				</Link>
+				<Link to={'/product/new'}>
+					<Button
+						size={'xs'}
+						gradientDuoTone={'cyanToBlue'}
+						className='w-fit h-8 rounded-lg text-center'>
+						<FontAwesomeIcon icon={faPlus} className='pr-2 w-4 h-4' />
+						Thêm sản phẩm
 					</Button>
 				</Link>
 			</div>
