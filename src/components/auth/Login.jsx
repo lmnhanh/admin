@@ -2,124 +2,75 @@ import { Button, Card, Checkbox, Label, TextInput } from 'flowbite-react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheckCircle, faWarning } from '@fortawesome/free-solid-svg-icons';
+import { faWarning } from '@fortawesome/free-solid-svg-icons';
 import { useDispatch } from 'react-redux';
-import { updateUsername } from '../../store/slices';
-import { Link } from 'react-router-dom';
+import axios from 'axios';
+import { setScope, setToken, updateUsername } from '../../libs/store/slices';
+import { useNavigate } from 'react-router-dom';
+import Loader from '../util/Loader';
+import { useState } from 'react';
 
 export default function Login(props) {
+	const [login, setLogin] = useState(false);
 	const dispatch = useDispatch();
+	const navigate = useNavigate();
 
 	const formik = useFormik({
 		initialValues: {
-			name: '',
 			email: '',
 			password: '',
 			remember: true,
 		},
 		validationSchema: Yup.object({
-			name: Yup.string()
-				.min(1, 'Name is more than 1 character')
-				.max(10, 'Name has max 15 charaters')
-				.required('Name is required'),
 			email: Yup.string().email('Invalid email format').required('Required!'),
 			password: Yup.string()
 				.min(4, 'Minimum 4 characters')
 				.required('Required!'),
 		}),
-		onSubmit: (values) => {
-			console.table(values);
-			dispatch(updateUsername(values.name));
+		onSubmit: async (values) => {
+			setLogin(true)
+			const response = await axios.post('/api/authenticate/login', {
+				username: values.email,
+				password: values.password,
+			});
+			const { status, data } = response;
+			if (status === 200) {
+				dispatch(setToken(data.access_token));
+				dispatch(setScope(data.scope));
+				dispatch(updateUsername(values.email));
+				navigate('/', { replace: true });
+			}
 		},
 	});
 
 	return (
-		<div className='flex justify-center'>
-			<div className='w-full md:w-1/2 lg:w-1/3'>
+		<div className='flex justify-center h-screen min-w-min'>
+			<div className='w-full mt-20 sm:w-1/2 lg:w-1/3'>
 				<Card>
-					<form className='flex flex-col' onSubmit={formik.handleSubmit}>
-						<div className='mb-2 block'>
-							<Label htmlFor='name' value='Your name' />
-						</div>
-						<TextInput
-							autoFocus
-							shadow
-							autoComplete="true"
-							sizing='sm'
-							id='name'
-							type='text'
-							name='name'
-							value={formik.values.name}
-							onChange={formik.handleChange}
-							placeholder='ABC'
-							color={
-								formik.touched.name
-									? formik.errors.name
-										? 'failure'
-										: 'success'
-									: 'gray'
-							}
-							helperText={
-								<span>
-									{formik.touched.name ? (
-										formik.errors.name ? (
-											<span>
-												<FontAwesomeIcon icon={faWarning} className='px-1' />
-												{formik.errors.name}
-											</span>
-										) : (
-											<span>
-												<FontAwesomeIcon
-													icon={faCheckCircle}
-													className='px-1'
-												/>
-												Name is valid
-											</span>
-										)
-									) : (
-										''
-									)}
-								</span>
-							}
-						/>
-						<div className='mb-2 block'>
+					<form
+						className='flex flex-col justify-center align-middle'
+						onSubmit={formik.handleSubmit}>
+						<div>
 							<Label htmlFor='email' value='Your email' />
 						</div>
 						<TextInput
 							id='email'
 							shadow
-							sizing='sm'
+							sizing='md'
 							type='emai'
 							name='email'
 							value={formik.values.email}
 							onChange={formik.handleChange}
-							placeholder='name@flowbite.com'
-							color={
-								formik.touched.email
-									? formik.errors.email
-										? 'failure'
-										: 'success'
-									: 'gray'
-							}
+							placeholder='Your_email@mail.com'
+							autoComplete='true'
+							color={formik.touched.email && formik.errors.email && 'failure'}
 							helperText={
 								<span>
-									{formik.touched.email ? (
-										formik.errors.email ? (
-											<span>
-												<FontAwesomeIcon icon={faWarning} className='px-1' />
-												{formik.errors.email}
-											</span>
-										) : (
-											<span>
-												<FontAwesomeIcon
-													icon={faCheckCircle}
-													className='px-1'
-												/>
-												Email is valid
-											</span>
-										)
-									) : (
-										''
+									{formik.touched.email && formik.errors.email && (
+										<span>
+											<FontAwesomeIcon icon={faWarning} className='px-1' />
+											{formik.errors.email}
+										</span>
 									)}
 								</span>
 							}
@@ -131,9 +82,10 @@ export default function Login(props) {
 							id='password'
 							name='password'
 							shadow
-							sizing='sm'
+							sizing='md'
 							value={formik.values.password}
 							onChange={formik.handleChange}
+							autoComplete='true'
 							type='password'
 						/>
 						<div className='flex items-center gap-2 mt-2'>
@@ -144,14 +96,16 @@ export default function Login(props) {
 								onChange={formik.handleChange}
 							/>
 							<Label htmlFor='remember' className='cursor-pointer'>
-								Remember me
+								Ghi nhớ đăng nhập
 							</Label>
 						</div>
-						<Button type='submit'>Submit</Button>
-						<Link to="/">
-							<Button type='submit'>Back</Button>
-						</Link>
-						
+						<Button
+							type='submit'
+							gradientDuoTone={'cyanToBlue'}
+							size={'sm'}
+							className='w-fit mt-2 self-center'>
+							{login && <Loader size={'sm'} className={'mr-2'}/>}Đăng nhập
+						</Button>
 					</form>
 				</Card>
 			</div>
