@@ -9,6 +9,7 @@ import { FilePond, registerPlugin } from 'react-filepond';
 import { useDispatch } from 'react-redux';
 import { setAuthorized } from '../../libs/store/slices';
 import StepWizard from 'react-step-wizard';
+import UpLoadImage from './product/UploadImage';
 
 registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
 
@@ -70,49 +71,7 @@ export default function Dashboard(props) {
 					Click đi
 				</Button>
 			</div>
-			<FilePond
-				files={images}
-				server={{
-					fetch: null,
-					revert: null,
-					remove: async (source, load, error) => {
-						const response = await axios.delete(`/api/images/${source}`);
-						const { status } = response;
-						status === 204 ? load() : error('Lỗi!');
-						//load();
-					},
-					load: async (source, load, error, progress, abort, headers) => {
-						const response = await axios.get(`/api/images/${source}`);
-
-						async function urltoFile(url, filename, mimeType) {
-							const res = await fetch(url);
-							const buf = await res.arrayBuffer();
-							return new File([buf], filename, { type: mimeType });
-						}
-
-						urltoFile(
-							`data:text/plain;base64,${response.data.data}`,
-							response.data.name,
-							'image/jpg'
-						).then(function (file) {
-							load(file);
-						});
-						error('oh my goodness');
-						//headers(headersString);
-						//progress(true, 0, 1024);
-						return {
-							abort: () => {
-								abort();
-							},
-						};
-					},
-				}}
-				allowMultiple={true}
-				allowRevert={false}
-				allowDrop={true}
-				name='images'
-				labelIdle='Kéo hoặc <span class="filepond--label-action">Chọn</span> hình cho sản phẩm'
-			/>
+			<UpLoadImage />
 		</div>
 	);
 }

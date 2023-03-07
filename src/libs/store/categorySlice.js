@@ -1,14 +1,15 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice } from '@reduxjs/toolkit';
 
 export const categorySlice = createSlice({
 	name: 'category',
 	initialState: {
 		name: '',
-		filter: 'active',
+		filter: '',
 		sort: 'dateupdate',
 		order: 'desc',
 		pageNo: 1,
-		pageSize: 5
+		pageSize: 5,
+		refresh: true,
 	},
 	reducers: {
 		setFilter: (state, action) => {
@@ -23,18 +24,41 @@ export const categorySlice = createSlice({
 		setName: (state, action) => {
 			state.name = action.payload;
 		},
-		setOptionToDefault: (state, action) =>{
-			state.filter = 'active';
-			state.order = 'desc';
-			state.sort = 'dateupdate';
-			state.name = '';
+		setPageNo: (state, action)=>{
+			state.pageNo = action.payload;
 		},
-		setOptionToNewest: (state, action) =>{
+		setPageSize: (state, action)=>{
+			state.pageSize = action.payload;
+		},
+		setOptionToDefault: (state, action) => {
+			state.name = '';
+			state.filter = '';
+			state.sort = '';
+			state.order = '';
+			state.pageNo = 1;
+			state.pageSize = 5;
+		},
+		setRefresh: (state, action)=>{
+			state.refresh = !state.refresh;
+		},
+		setOptionToNewest: (state, action) => {
 			state.order = 'desc';
 			state.sort = 'dateupdate';
 			state.name = '';
+			state.pageNo = 1;
+			state.refresh = !state.refresh;
 		}
-	}
+	},
 });
-export const {setFilter, setOrder, setSort, setName, setOptionToDefault, setOptionToNewest} = categorySlice.actions
-export const categoryReducer =  categorySlice.reducer
+
+export const {
+	setFilter,
+	setOrder,
+	setSort,
+	setName,
+	setOptionToDefault,
+	setOptionToNewest,
+	setPageNo,
+	setPageSize
+} = categorySlice.actions;
+export const categoryReducer = categorySlice.reducer;

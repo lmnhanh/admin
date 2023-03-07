@@ -6,8 +6,12 @@ import * as Yup from 'yup';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWarning } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { setId } from '../../../libs/store/categorySlice';
 
 export default function NewCategoryModal({handleOnSuccess, show, handleOnClose}) {
+
+	const dispatch = useDispatch();
 
 	const formik = useFormik({
 		initialValues: {

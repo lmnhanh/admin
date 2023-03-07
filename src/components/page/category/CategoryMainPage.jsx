@@ -1,12 +1,12 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Button, Modal, TextInput } from 'flowbite-react';
+import { Button } from 'flowbite-react';
 import { Link, Outlet } from 'react-router-dom';
 import { faBars, faChartLine, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { useState } from 'react';
 import NewCategoryModal from './NewCategoryModal';
 import { useDispatch } from 'react-redux';
-import { setOptionToNewest } from '../../../libs/store/categorySlice';
 import { Fragment } from 'react';
+import { setOptionToNewest } from '../../../libs/store/categorySlice';
 
 export default function CategoryMainPage(props) {
 	const [showAddModal, setShowAddModal] = useState(false);

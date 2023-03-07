@@ -17,75 +17,78 @@ registerPlugin(
 	FilePondPluginFileValidateType
 );
 
-export default function UpLoadImage(props) {
+export default function UpLoadImage({ productId }) {
 	const token = useSelector((state) => state.auth.token);
+	const [images, setImages] = useState();
 
-  const discover = async () => {
-			const response = await axios.get('https://localhost:7028/api/images');
-			if (response.status === 200) {
-				formik.values.imageIds = response.data.map((item) => ({
-						source: item.url,
-						options: {
-							type: 'local',
-						},
-					}));
-			}
+	const discover = async () => {
+		const response = await axios.get('https://localhost:7028/api/images');
+		if (response.status === 200) {
+			setImages(
+				response.data.map((item) => ({
+					source: item.url,
+					options: {
+						type: 'local',
+					},
+				}))
+			);
+		}
 	};
 
 	const formik = useFormik({
 		initialValues: {
 			imageIds: [],
 		},
-		onSubmit: async (values) => {
-			
-		},
+		onSubmit: async (values) => {},
 	});
 
-  useEffect(()=>{
-    discover();
-  },[])
+	useEffect(() => {
+		discover();
+	}, []);
 
 	return (
 		<Fragment>
 			<FilePond
-				files={formik.values.imageIds}
+				files={images}
 				allowFileSizeValidation={true}
 				maxFileSize='2MB'
 				labelMaxFileSize='<Button 2MB'
 				labelMaxFileSizeExceeded='Ảnh quá lớn'
 				allowFileTypeValidation={true}
-				allowReorder={true}
+				//allowReorder={true}
 				acceptedFileTypes={['image/*']}
 				labelFileTypeNotAllowed='Chỉ chọn ảnh!'
 				server={{
 					process: {
-            url: 'https://localhost:7028/api/products/UploadImage',
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            withCredentials: false,
-            onload: (response) => {
-              console.log(response);
-              formik.values.imageIds.push({
-                source: response,
-                options: {
-                  type: 'local',
-                },
-              });
-            },
-          },
+						url: 'https://localhost:7028/api/products/UploadImage',
+						method: 'POST',
+						headers: {
+							Authorization: `Bearer ${token}`,
+							productId: productId
+						},
+						withCredentials: false,
+						onload: (response) => {
+							console.log(response);
+							formik.values.imageIds.push({
+								source: response,
+								options: {
+									type: 'local',
+								},
+							});
+						},
+					},
 
 					load: async (source, load, error, progress, abort, headers) => {
-            const response = await axios.get(`/api/images/${source}`);
+						const response = await axios.get(`/api/images/${source}`);
 
-            async function urltoFile(url, filename, mimeType) {
-              const res = await fetch(url);
-              const buf = await res.arrayBuffer();
-              return new File([buf], filename, { type: mimeType });
-            }
+						async function urltoFile(url, filename, mimeType) {
+							const res = await fetch(url);
+							const buf = await res.arrayBuffer();
+							console.log(buf);
+							return new File([buf], filename, { type: mimeType });
+						}
 
-            urltoFile(
+						urltoFile(
 							`data:text/plain;base64,${response.data.data}`,
 							response.data.name,
 							'image/jpg'
@@ -93,28 +96,28 @@ export default function UpLoadImage(props) {
 							load(file);
 						});
 
-            error('oh my goodness');
-            //headers(headersString);
-            //progress(true, 0, 1024);
-            return {
-              abort: () => {
-                abort();
-              },
-            };
-          },
+						error('oh my goodness');
+						//headers(headersString);
+						//progress(true, 0, 1024);
+						return {
+							abort: () => {
+								abort();
+							},
+						};
+					},
 
-          remove: async (source, load, error) => {
-            const response = await axios.delete(`/api/images/${source}`);
-            const { status } = response;
-            if (status === 204) {
-              let index = formik.values.imageIds.findIndex(
-                (image) => image.source === source
-              );
-              formik.values.imageIds.splice(index, 1);
-              load();
-            } else error('Lỗi!');
-            //load();
-          },
+					remove: async (source, load, error) => {
+						const response = await axios.delete(`/api/images/${source}`);
+						const { status } = response;
+						if (status === 204) {
+							let index = formik.values.imageIds.findIndex(
+								(image) => image.source === source
+							);
+							formik.values.imageIds.splice(index, 1);
+							load();
+						} else error('Lỗi!');
+						//load();
+					},
 
 					fetch: null,
 					revert: null,

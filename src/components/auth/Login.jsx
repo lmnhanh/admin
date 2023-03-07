@@ -10,6 +10,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import Loader from '../util/Loader';
 import { useState } from 'react';
 import useQuery from './../util/useQuery';
+import jwtDecode from 'jwt-decode';
 
 export default function Login(props) {
 	const [login, setLogin] = useState(false);
@@ -37,11 +38,17 @@ export default function Login(props) {
 			});
 			const { status, data } = response;
 			if (status === 200) {
-				//dispatch(setToken(data.access_token));
-				//dispatch(setScope(data.scope));
-				dispatch(setAuthorized({token: data.access_token, authorized: true}));
-				dispatch(updateUsername(values.email));
-				navigate(`/${query.get('returnUrl')??''}`, { replace: true });
+				const {scope} = jwtDecode(data.access_token);
+				console.log(scope);
+				if(scope.includes('Admin')){
+					//dispatch(setToken(data.access_token));
+					//dispatch(setScope(data.scope));
+					dispatch(setAuthorized({token: data.access_token, authorized: true}));
+					dispatch(updateUsername(values.email));
+					navigate(`/${query.get('returnUrl')??''}`, { replace: true });
+				}else{
+					navigate("/notfound", { replace: true });
+				}
 			}
 		},
 	});

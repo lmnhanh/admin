@@ -1,5 +1,10 @@
-import axios from 'axios';
-import React, { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+	Fragment,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from 'react';
 import { Badge, Modal, Label, Select, Card, TextInput } from 'flowbite-react';
 import Loader from '../../util/Loader';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -9,7 +14,6 @@ import {
 	faFilter,
 	faGear,
 	faHome,
-	faICursor,
 	faRotate,
 	faSort,
 	faSortAlphaDesc,
@@ -24,22 +28,26 @@ import {
 	setName,
 	setOptionToDefault,
 	setOrder,
+	setPageNo,
+	setPageSize,
 	setSort,
 } from '../../../libs/store/categorySlice';
 import ReactPaginate from 'react-paginate';
 import BreadcrumbPath from './../../util/BreadCrumbPath';
 import { setAuthorized } from '../../../libs/store/slices';
+import axios from 'axios';
 
 export default function CategoryListPage(props) {
 	const [categories, setCategories] = useState(null);
 	const [showOption, setShowOption] = useState(false);
-	const [pageNo, setPageNo] = useState(1);
 	const [totalPage, setTotalPage] = useState(1);
 	const [totalCategories, setTotalCategories] = useState(0);
-	const [pagesize, setPagesize] = useState(5);
 
-	const { filter, order, sort, name } = useSelector((state) => state.category);
-	const searchInput = useRef({value: name});
+	const { filter, order, sort, name, pageNo, pageSize, refresh } = useSelector(
+		(state) => state.category
+	);
+
+	const searchInput = useRef({ value: name });
 	const dispatch = useDispatch();
 
 	const FilterOption = [
@@ -74,12 +82,12 @@ export default function CategoryListPage(props) {
 
 	const fetchData = useCallback(async () => {
 		try {
-			const response = await axios.get(
-				`/api/categories?page=${pageNo}&size=${pagesize}&name=${name}&filter=${filter}&sort=${sort}&order=${order}`
+			const { status, data } = await axios.get(
+				`https://localhost:7028/api/categories?page=${pageNo}&size=${pageSize}&name=${name}&filter=${filter}&sort=${sort}&order=${order}`
 			);
-			const { data, status } = response;
 			if (status === 200) {
-				data.categories.length === 0 && setPageNo(1);
+				data.categories.length === 0 && dispatch(setPageNo(1));
+				console.log(data.categories.length);
 				setTotalCategories(data.totalRows);
 				setTotalPage(data.totalPages);
 				setCategories(data.categories);
@@ -88,14 +96,13 @@ export default function CategoryListPage(props) {
 			errors.response.status === 401 &&
 				dispatch(setAuthorized({ authorized: false }));
 		}
-	}, [pageNo, pagesize, filter, sort, order, name, dispatch]);
+	}, [pageNo, pageSize, filter, sort, order, name, refresh, dispatch]);
 
 	useEffect(() => {
 		document.title = 'Danh sách sản phẩm';
 	}, []);
 
 	useEffect(() => {
-		document.title = 'Danh sách sản phẩm';
 		fetchData();
 	}, [fetchData]);
 
@@ -114,16 +121,15 @@ export default function CategoryListPage(props) {
 	};
 
 	const handleChangePagesize = (pagesize) => {
-		setPagesize(pagesize);
+		dispatch(setPageSize(pagesize));
 	};
 
 	const handlePageChange = (page) => {
-		setPageNo(page);
+		dispatch(setPageNo(page));
 	};
 
 	const handleUseFilter = (value) => {
 		handlePageChange(1);
-		setPageNo(1);
 		dispatch(setFilter(value));
 	};
 
@@ -253,8 +259,8 @@ export default function CategoryListPage(props) {
 								sizing={'sm'}
 								maxLength={20}
 								autoFocus={true}
-								onChange={(event)=>{
-									if(event.target.value.length === 0){
+								onChange={(event) => {
+									if (event.target.value.length === 0) {
 										event.preventDefault();
 										dispatch(setName(event.target.value));
 									}

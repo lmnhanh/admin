@@ -45,7 +45,7 @@ export default function ProductListPage(props) {
 	const [pagesize, setPagesize] = useState(5);
 
 	
-	const { filter, order, sort, name } = useSelector((state) => state.product);
+	const { filter, order, sort, name} = useSelector((state) => state.product);
 	const searchInput = useRef({value: name});
 	const dispatch = useDispatch();
 
@@ -173,7 +173,6 @@ export default function ProductListPage(props) {
 					<Card>
 						<div className='text-md font-bold items-center flex gap-2'>
 							<span className='mr-3'>Danh sách sản phẩm</span>
-
 							{FilterOption.map(
 								(opt, index) =>
 									filter === opt.name && (

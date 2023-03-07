@@ -13,6 +13,12 @@ export function ParseToDate(timestamp){
   }).format(new Date(timestamp));
 }
 
+export const fetchCategory = (pageNo = 1, pagesize = 5, name = '', filter = '', sort = 'dateupdate', order = 'desc') => {
+	return axios.get(
+		`https://localhost:7028/api/categories?page=${pageNo}&size=${pagesize}&name=${name}&filter=${filter}&sort=${sort}&order=${order}`
+	);
+}
+
 export const getTokenSilent = () => {
 	axios.post(
 		'https://localhost:5001/connect/token',

@@ -1,17 +1,17 @@
 import {
 	faCheck,
-	faPenToSquare,
-	faPlusCircle,
 	faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Badge, Dropdown, Table } from 'flowbite-react';
+import { Badge, Table } from 'flowbite-react';
 import React from 'react';
 import Highlighter from 'react-highlight-words';
-import { Link } from 'react-router-dom';
-import { ParseToDate } from '../../libs/store/helper';
+import { useNavigate } from 'react-router-dom';
+import { ParseToDate } from '../../libs/helper';
 
 export default function CategoryList({ data, highlightText }) {
+	const navigate = useNavigate();
+
 	return (
 		<Table hoverable={true}>
 			<Table.Head>
@@ -19,13 +19,12 @@ export default function CategoryList({ data, highlightText }) {
 				<Table.HeadCell>Tên loại</Table.HeadCell>
 				<Table.HeadCell>Trạng thái</Table.HeadCell>
 				<Table.HeadCell>Ngày cập nhật</Table.HeadCell>
-				<Table.HeadCell>
-					<span className='sr-only'>Edit</span>
-				</Table.HeadCell>
 			</Table.Head>
 			<Table.Body className='divide-y'>
 				{data.map((item, index) => (
-					<Table.Row className='bg-white mx-1' key={item.id}>
+					<Table.Row className='bg-white mx-1 cursor-pointer hover:bg-gradient-to-r hover:from-blue-100 hover:to-gray-100' key={item.id} onClick={()=>{
+						navigate(`/category/edit/${item.id}`);
+					}}>
 						<Table.Cell>{item.id}</Table.Cell>
 						<Table.Cell className='whitespace-nowrap font-medium text-gray-900'>
 							<Highlighter
@@ -37,7 +36,7 @@ export default function CategoryList({ data, highlightText }) {
 						</Table.Cell>
 						<Table.Cell>
 							{item.isActive ? (
-								<Badge className='w-fit' color={'info'}>
+								<Badge className='w-fit' color={'success'}>
 									<FontAwesomeIcon icon={faCheck} className='mr-1' />
 									Đang kinh doanh
 								</Badge>
@@ -51,7 +50,7 @@ export default function CategoryList({ data, highlightText }) {
 						<Table.Cell className='whitespace-nowrap font-medium text-gray-900'>
 							{ParseToDate(item.dateUpdate)}
 						</Table.Cell>
-						<Table.Cell>
+						{/* <Table.Cell>
 							<Dropdown label='Tùy chọn' color={'gray'} size={'xs'}>
 								<Dropdown.Item>
 									<Link
@@ -73,7 +72,7 @@ export default function CategoryList({ data, highlightText }) {
 									Thêm sản phẩm
 								</Dropdown.Item>
 							</Dropdown>
-						</Table.Cell>
+						</Table.Cell> */}
 					</Table.Row>
 				))}
 			</Table.Body>

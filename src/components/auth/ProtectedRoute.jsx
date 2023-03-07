@@ -2,6 +2,7 @@ import axios from 'axios';
 import { useSelector, useDispatch } from 'react-redux';
 import { Navigate, Outlet } from 'react-router-dom';
 import { setAuthorized } from '../../libs/store/slices';
+import RefreshProvider from './RefreshProvider';
 
 export default function ProtectedRoute({ redirectPath = '/login', children }) {
 
@@ -45,9 +46,8 @@ export default function ProtectedRoute({ redirectPath = '/login', children }) {
 		// 	//return <NotFound404/>;
 		// }
 //	}, []);
-
 	if(authorized === false && token !== '') dispatch(setAuthorized({token: token, authorized: true}));
-	return authorized ? (children ? children: <Outlet/>) : <Navigate to={redirectPath} replace={true}/>;
+	return authorized ? (<RefreshProvider>{children ? children: <Outlet/>}</RefreshProvider>) : <Navigate to={redirectPath} replace={true}/>;
 	// if (!token) {
 	// 	axios.post(
 	// 			'https://localhost:5001/connect/token',

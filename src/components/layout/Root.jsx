@@ -12,17 +12,17 @@ export class Root extends Component {
 	}
 	render() {
 		return (
-			<div className='flex h-screen pb-5 flex-col overflow-hidden'>
+			<div className='flex flex-col h-screen pb-5 overflow-hidden'>
 				<Header />
-				<div className='flex h-full pb-5 min-w-min'>
+				<div className='flex pb-5 overflow-auto'>
 					<MainSidebar />
-					<main className='flex-1 p-1 overflow-auto min-w-max'>
+					<main className='flex-1 p-1 overflow-auto'>
 						<Outlet />
 					</main>
 				</div>
 				<ToastContainer
 					position='top-right'
-					autoClose={4000}
+					autoClose={2000}
 					hideProgressBar={false}
 					newestOnTop={false}
 					closeOnClick

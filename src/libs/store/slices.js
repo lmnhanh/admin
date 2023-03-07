@@ -18,7 +18,7 @@ export const appSlice = createSlice({
 		},
 		setScope: (state, action) => {
 			state.scope = action.payload;
-		},
+		}
 	},
 });
 
@@ -39,7 +39,7 @@ export const authSlice = createSlice({
 	},
 });
 
-export const { updateUsername, toggleSidebar, setScope } = appSlice.actions;
+export const { updateUsername, toggleSidebar, setScope} = appSlice.actions;
 export const { setToken, setAuthorized } = authSlice.actions;
 
 export const authReducer = authSlice.reducer;

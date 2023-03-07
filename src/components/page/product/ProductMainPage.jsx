@@ -7,7 +7,7 @@ import { faBars, faChartLine, faPlus } from '@fortawesome/free-solid-svg-icons';
 export default function ProductMainPage(props) {
 	return (
 		<Fragment>
-			<div className='flex gap-2'>
+			<div className='flex gap-2 sticky'>
 				<Link to={'/product'}>
 					<Button
 						className='w-fit h-8 rounded-lg text-center'

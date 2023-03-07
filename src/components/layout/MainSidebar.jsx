@@ -16,7 +16,7 @@ export default function MainSidebar(props) {
 	});
 
 	return (
-		<Sidebar collapsed={collapsed} className={'w-fit'}>
+		<Sidebar collapsed={collapsed} className={'max-w-max'}>
 			<Sidebar.Items>
 				<Sidebar.ItemGroup>
 					<Sidebar.Item

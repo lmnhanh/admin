@@ -1,28 +1,28 @@
-.filepond--root {
-  min-height: 8em;
-  max-height: 35em;
-  overflow: auto;
+ .filepond--root {
+  min-height: 5em;
+  max-height: 45em;
 }
-.filepond--item {
+
+/* .filepond--item {
   max-height: 10em;
   min-height: max-content;
-  overflow: hidden;
-}
+} */
+
 
 @media (min-width: 30em) {
   .filepond--item {
       width: calc(50% - 0.5em);
   }
 }
-
 @media (min-width: 50em) {
   .filepond--item {
-      width: calc(33.33% - 0.5em);
+    width: calc(33.33% - 0.5em);
   }
 }
 
+/* 
 @media (min-width: 80em) {
   .filepond--item {
-      width: calc(24% - 0.5em);
+    width: calc(20% - 0.5em);
   }
-}
+} */

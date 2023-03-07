@@ -11,6 +11,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import ProductMainPage from './components/page/product/ProductMainPage';
 import ProductListPage from './components/page/product/ProductListPage';
 import NewProductPage from './components/page/product/NewProductPage';
+import ProductInfoPage from './components/page/product/ProductInfoPage';
 
 const router = createBrowserRouter([
 	{
@@ -57,6 +58,10 @@ const router = createBrowserRouter([
 						element: <CategoryEditPage />,
 					},
 					{
+						path: '/product/:id',
+						element: <ProductInfoPage />,
+					},
+					{
 						path: '/product/new',
 						element: <NewProductPage />,
 					},
@@ -71,6 +76,10 @@ const router = createBrowserRouter([
 	{
 		path: '/login',
 		element: <Login />,
+	},
+	{
+		path: '/notfound',
+		element: <NotFound404 />,
 	},
 ]);
 
