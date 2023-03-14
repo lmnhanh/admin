@@ -1,12 +1,12 @@
-
 import FilterBadge from './FilterBadge';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { faCheck, faXmark, faStar } from '@fortawesome/free-solid-svg-icons';
+
 export default function ProductInfo({ product }) {
 	return (
 		<React.Fragment>
-			<div className='flex gap-2 items-center'>
+			<div className='flex gap-2'>
 				{product.isActive ? (
 					<FilterBadge
 						label='Đang kinh doanh'
@@ -47,7 +47,7 @@ export default function ProductInfo({ product }) {
 					</div>
 					<div className='flex flex-col lg:col-span-2 gap-2'>
 						<div className='font-semibold'>Mô tả:</div>
-						<div
+						<div className='text-ellipsis'
 							dangerouslySetInnerHTML={{
 								__html: product.description,
 							}}></div>

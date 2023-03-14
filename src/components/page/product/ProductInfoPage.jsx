@@ -7,38 +7,21 @@ import { Fragment, useEffect, useState } from 'react';
 import BreadcrumbPath from './../../util/BreadCrumbPath';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-	faCheck,
 	faHome,
 	faPlusCircle,
-	faStar,
 	faTrashCan,
-	faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 import { Card, Dropdown } from 'flowbite-react';
 import { Link } from 'react-router-dom';
-import FilterBadge from './../../util/FilterBadge';
 import ImageGallery from 'react-image-gallery';
 import 'react-image-gallery/styles/css/image-gallery.css';
 import ProductInfo from '../../util/ProductInfo';
-
-const images = [
-	{
-		original: 'https://picsum.photos/id/1018/1000/600/',
-		thumbnail: 'https://picsum.photos/id/1018/250/150/',
-	},
-	{
-		original: 'https://picsum.photos/id/1015/1000/600/',
-		thumbnail: 'https://picsum.photos/id/1015/250/150/',
-	},
-	{
-		original: 'https://picsum.photos/id/1019/1000/600/',
-		thumbnail: 'https://picsum.photos/id/1019/250/150/',
-	},
-];
+import './imageGallery.css';
 
 export default function ProductInfoPage(props) {
 	const { id } = useParams();
 	const [product, setProduct] = useState(null);
+	const [images, setImages] = useState([]);
 	const [editing, setEditing] = useState(false);
 	const dispatch = useDispatch();
 
@@ -46,19 +29,32 @@ export default function ProductInfoPage(props) {
 		document.title = 'Thông tin sản phẩm';
 
 		const fetchProduct = async () => {
-			try {
-				const { status, data } = await axios.get(`/api/products/${id}`);
-				if (status === 200 && data) {
-					setProduct(data);
-				}
-			} catch (error) {
-				if (error.response.status === 401) {
-					dispatch(setAuthorized({ authorized: false }));
-				}
+			const { status, data } = await axios.get(`/api/products/${id}`);
+			if (status === 200 && data) {
+				setProduct(data);
 			}
 		};
 
-		fetchProduct();
+		const fetchImages = async () => {
+			const { status, data } = await axios.get(`/api/images?productId=${id}`);
+			if (status === 200 && data.length !== 0) {
+				setImages(
+					data.map((item) => ({
+						original: `https://localhost:7028/api/images/get/${item}`,
+						thumbnail: `https://localhost:7028/api/images/get/${item}`,
+					}))
+				);
+			}
+		};
+
+		try {
+			fetchProduct();
+			fetchImages();
+		} catch (error) {
+			if (error.response.status === 401) {
+				dispatch(setAuthorized({ authorized: false }));
+			}
+		}
 	}, [id, dispatch]);
 
 	return product !== null ? (
@@ -77,11 +73,15 @@ export default function ProductInfoPage(props) {
 					{ to: `/product/${id}`, text: 'Thông tin sản phẩm' },
 				]}
 			/>
-			<div className='container grid grid-cols-1 md:grid-cols-3'>
+			<div className='container gap-2 grid grid-cols-1 md:grid-cols-3'>
 				<div className='shrink'>
-					<ImageGallery items={images} lazyLoad={true} showNav={false} />
+					{images.length !== 0? (
+						<ImageGallery items={images} lazyLoad={true} showNav={false} slideOnThumbnailOver={true} />
+					) : (
+						<div>Sản phẩm chưa có hình ảnh! Thêm ngay!</div>
+					)}
 				</div>
-				<Card className='relative col-span-1 md:col-span-2'>
+				<Card className='relative col-span-1 md:col-span-2 self-start'>
 					{!editing && (
 						<div className='absolute md:top-3 md:right-3 invisible md:visible'>
 							<Dropdown
@@ -111,7 +111,7 @@ export default function ProductInfoPage(props) {
 							</Dropdown>
 						</div>
 					)}
-					<ProductInfo product={product}/>
+					<ProductInfo product={product} />
 				</Card>
 			</div>
 		</Fragment>

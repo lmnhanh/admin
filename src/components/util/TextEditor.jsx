@@ -2,12 +2,12 @@ import React from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
-export default function TextEditor({ id = "editor", quillRef }) {
+export default function TextEditor({ id = "editor", quillRef, value }) {
 	return (
 		<ReactQuill
 			id={id}
 			ref={quillRef}
-			defaultValue={quillRef.current.value}
+			defaultValue={value}
 			theme='snow'
 			modules={{
 				toolbar: [

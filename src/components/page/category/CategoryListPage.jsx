@@ -370,6 +370,7 @@ export default function CategoryListPage(props) {
 											pageLinkClassName={'w-10 py-1 text-center align-middle'}
 											pageRangeDisplayed={2}
 											pageCount={totalPage}
+											initialPage={pageNo-1}
 											renderOnZeroPageCount={null}
 										/>
 									)}

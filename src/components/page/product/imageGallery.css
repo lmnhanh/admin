@@ -1,0 +1,18 @@
+.image-gallery-thumbnail-image{
+  height: 5em;
+  object-fit: cover;
+}
+/* .image-gallery{
+  height: 50em;
+} */
+.image-gallery-slides{
+  /* min-height: 20em; */
+  height: 65vh;
+  object-fit: cover;
+  /* overflow: hidden; */
+}
+
+/* .image-gallery-image{
+  height: 20em;
+  object-fit: contain;
+}  */

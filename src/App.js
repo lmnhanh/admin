@@ -12,6 +12,7 @@ import ProductMainPage from './components/page/product/ProductMainPage';
 import ProductListPage from './components/page/product/ProductListPage';
 import NewProductPage from './components/page/product/NewProductPage';
 import ProductInfoPage from './components/page/product/ProductInfoPage';
+import NewProductDetail from './components/page/product/detail/NewProductDetail';
 
 const router = createBrowserRouter([
 	{
@@ -69,6 +70,10 @@ const router = createBrowserRouter([
 						path: '/product/overall',
 						element: <CategoryOverallPage />,
 					},
+					{
+						path: '/product/:id/detail',
+						element: <NewProductDetail/>
+					}
 				],
 			},
 		],
