@@ -9,17 +9,18 @@ export default function SelectableInput({
 	isClearable,
 	isDisabled,
 	isMultiple,
+	defaultValue
 }) {
-	const [selected, setSelected] = useState(null);
+	const [selected, setSelected] = useState(defaultValue);
 
 	const handleChange = (selected) => {
 		onChange && onChange(selected);
 		setSelected(selected);
 	};
-
+	
 	return (
 		<Select
-			value={selected?? options[0]}
+			value={selected?? defaultValue ?? options[0]}
 			primaryColor={color??'blue'}
 			isSearchable={isSearchable}
 			isClearable={isClearable}

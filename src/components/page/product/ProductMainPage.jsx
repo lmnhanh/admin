@@ -26,7 +26,7 @@ export default function ProductMainPage(props) {
 						Thống kê tổng quát
 					</Button>
 				</Link>
-				<Link to={'/product/new'}>
+				<Link to={'/product/modify'}>
 					<Button
 						size={'xs'}
 						gradientDuoTone={'cyanToBlue'}

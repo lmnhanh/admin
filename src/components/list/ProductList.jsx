@@ -28,7 +28,7 @@ export default function ProductList({ data, highlightText }) {
 						key={item.id}
 						onClick={() => navigate(`/product/${item.id}`)}>
 						<Table.Cell>{item.id}</Table.Cell>
-						<Table.Cell className='flex gap-1 items-center whitespace-nowrap font-medium text-gray-900'>
+						<Table.Cell className='items-center whitespace-nowrap font-medium text-gray-900'>
 							<Highlighter
 								highlightClassName='bg-blue-300'
 								searchWords={highlightText.split(' ')}
@@ -37,7 +37,7 @@ export default function ProductList({ data, highlightText }) {
 							/>
 							
 							{item.isRecommended && (
-									<FontAwesomeIcon icon={faStar} className='text-yellow-300' />
+									<FontAwesomeIcon icon={faStar} className='text-yellow-300 ml-1' />
 							)}
 						</Table.Cell>
 						<Table.Cell className='whitespace-nowrap font-medium text-gray-900'>
