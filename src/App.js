@@ -13,6 +13,14 @@ import ProductListPage from './components/page/product/ProductListPage';
 import NewProductPage from './components/page/product/NewProductPage';
 import ProductInfoPage from './components/page/product/ProductInfoPage';
 import NewProductDetail from './components/page/product/detail/NewProductDetail';
+import VenderMainPage from './components/page/vender/VenderMainPage';
+import VenderListPage from './components/page/vender/VenderListPage';
+import VenderInfoPage from './components/page/vender/VenderInfoPage';
+import InvoiceMainPage from './components/page/invoice/InvoiceMainPage';
+import InvoiceListPage from './components/page/invoice/InvoiceListPage';
+import InvoiceInfoPage from './components/page/invoice/InvoiceInfoPage';
+import NewInvoicePage from './components/page/invoice/NewInvoicePage';
+import StockMainPage from './components/page/stock/StockMainPage';
 
 const router = createBrowserRouter([
 	{
@@ -55,15 +63,11 @@ const router = createBrowserRouter([
 						element: <ProductListPage />,
 					},
 					{
-						path: '/product/edit/:id',
-						element: <CategoryEditPage />,
-					},
-					{
 						path: '/product/:id',
 						element: <ProductInfoPage />,
 					},
 					{
-						path: '/product/modify',
+						path: '/product/new',
 						element: <NewProductPage />,
 					},
 					{
@@ -76,6 +80,54 @@ const router = createBrowserRouter([
 					}
 				],
 			},
+			{
+				path: '/vender',
+				element: <VenderMainPage />,
+				children: [
+					{
+						path: '/vender',
+						element: <VenderListPage />,
+					},
+					{
+						path: '/vender/:id',
+						element: <VenderInfoPage />,
+					},
+					{
+						path: '/vender/new',
+						element: <NewProductPage />,
+					},
+					{
+						path: '/vender/overall',
+						element: <CategoryOverallPage />,
+					}
+				],
+			},
+			{
+				path: '/invoice',
+				element: <InvoiceMainPage />,
+				children: [
+					{
+						path: '/invoice',
+						element: <InvoiceListPage />,
+					},
+					{
+						path: '/invoice/:id',
+						element: <InvoiceInfoPage />,
+					},
+					{
+						path: '/invoice/new',
+						element: <NewInvoicePage />,
+					},
+					{
+						path: '/invoice/overall',
+						element: <CategoryOverallPage />,
+					}
+				],
+			},
+			{
+				path: '/stock',
+				element: <StockMainPage />
+			}
 		],
 	},
 	{

@@ -14,7 +14,7 @@ export class Root extends Component {
 		return (
 			<div className='flex flex-col h-screen overflow-hidden'>
 				<Header />
-				<div className='flex overflow-auto'>
+				<div className='flex h-full overflow-auto mb-12'>
 					<MainSidebar />
 					<main className='flex-1 p-1 overflow-auto'>
 						<Outlet />

@@ -1,23 +1,44 @@
-import axios from "axios";
+import axios from 'axios';
 
-export function ParseToDate(timestamp){
-  return new Intl.DateTimeFormat('vi-VN', {
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric',
-    second: 'numeric',
-    hour12: false,
-    timeZone: 'Asia/Ho_Chi_Minh',
-  }).format(new Date(timestamp));
+export function ParseToDate(timestamp, mode = 0) {
+	if (mode === 0)
+		return new Intl.DateTimeFormat('vi-VN', {
+			year: 'numeric',
+			month: 'numeric',
+			day: 'numeric',
+			hour: 'numeric',
+			minute: 'numeric',
+			second: 'numeric',
+			hour12: false,
+			timeZone: 'Asia/Ho_Chi_Minh',
+		}).format(new Date(timestamp));
+		return new Intl.DateTimeFormat('vi-VN', {
+			year: 'numeric',
+			month: 'numeric',
+			day: 'numeric',
+			timeZone: 'Asia/Ho_Chi_Minh',
+		}).format(new Date(timestamp));
 }
 
-export const fetchCategory = (pageNo = 1, pagesize = 5, name = '', filter = '', sort = 'dateupdate', order = 'desc') => {
+export function FormatCurrency(number) {
+	return new Intl.NumberFormat('vi-VN', {
+		style: 'currency',
+		currency: 'VND',
+	}).format(number);
+}
+
+export const fetchCategory = (
+	pageNo = 1,
+	pagesize = 5,
+	name = '',
+	filter = '',
+	sort = 'dateupdate',
+	order = 'desc'
+) => {
 	return axios.get(
 		`https://localhost:7028/api/categories?page=${pageNo}&size=${pagesize}&name=${name}&filter=${filter}&sort=${sort}&order=${order}`
 	);
-}
+};
 
 export const getTokenSilent = () => {
 	axios.post(

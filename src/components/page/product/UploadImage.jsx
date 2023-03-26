@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect } from 'react';
+import { Fragment, useEffect } from 'react';
 import { FilePond, registerPlugin } from 'react-filepond';
 import './filepond.css';
 import FilePondPluginImageExifOrientation from 'filepond-plugin-image-exif-orientation';
@@ -19,19 +19,18 @@ registerPlugin(
 
 export default function UpLoadImage({ productId }) {
 	const token = useSelector((state) => state.auth.token);
-	//const [images, setImages] = useState([]);
 
 	const fetchImages = async () => {
 		const response = await axios.get(`https://localhost:7028/api/images?productId=${productId}`);
 		if (response.status === 200) {
-			// setImages(
-			// 	response.data.map((item) => ({
-			// 		source: item,
-			// 		options: {
-			// 			type: 'local',
-			// 		},
-			// 	}))
-			// );
+			formik.setValues({
+				images: response.data.map((item) => ({
+					source: item,
+					options: {
+						type: 'local',
+					},
+				}))
+			})
 		}
 	};
 
@@ -67,17 +66,17 @@ export default function UpLoadImage({ productId }) {
 						},
 						withCredentials: false,
 						onload: (response) => {
-							console.log(response);
-							formik.values.images.push({
+							formik.values.images = [...formik.values.images,{
 								source: response,
 								options: {
 									type: 'local',
 								}
-							})
+							}]
 						},
 					},
 
 					load: async (source, load, error, progress, abort, headers) => {
+						console.log(source);
 						const response = await axios.get(`/api/images/${source}`);
 
 						async function urltoFile(url, filename, mimeType) {
@@ -94,7 +93,7 @@ export default function UpLoadImage({ productId }) {
 							load(file);
 						});
 
-						error('oh my goodness');
+						//error('oh my goodness');
 						//headers(headersString);
 						//progress(true, 0, 1024);
 						return {

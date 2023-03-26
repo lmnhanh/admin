@@ -14,6 +14,12 @@ export const productSlice = createSlice({
 		setFilter: (state, action) => {
 			state.filter = action.payload;
 		},
+		setPageNo: (state, action) => {
+			state.pageNo = action.payload;
+		},
+		setPageSize: (state, action) => {
+			state.pageSize = action.payload;
+		},
 		setOrder: (state, action) => {
 			state.order = action.payload;
 		},
@@ -24,7 +30,7 @@ export const productSlice = createSlice({
 			state.name = action.payload;
 		},
 		setOptionToDefault: (state, action) =>{
-			state.filter = 'active';
+			state.filter = '';
 			state.order = 'desc';
 			state.sort = 'dateupdate';
 			state.name = '';
@@ -36,5 +42,5 @@ export const productSlice = createSlice({
 		}
 	}
 });
-export const {setFilter, setOrder, setSort, setName, setOptionToDefault, setOptionToNewest} = productSlice.actions
+export const {setFilter, setOrder, setSort, setName, setOptionToDefault, setOptionToNewest, setPageNo, setPageSize} = productSlice.actions
 export const productReducer =  productSlice.reducer

@@ -1,5 +1,5 @@
 import {
-	faBars,
+	faArrowLeft,
 	faCheck,
 	faHome,
 	faPencilAlt,
@@ -26,6 +26,7 @@ import ToastPromise from '../../util/ToastPromise';
 import { ParseToDate } from './../../../libs/helper';
 import BreadcrumbPath from './../../util/BreadCrumbPath';
 import NotFound404 from './../../util/NotFound404';
+import ProductList from '../../list/ProductList';
 
 export default function CategoryEditPage(props) {
 	const { id } = useParams();
@@ -124,7 +125,7 @@ export default function CategoryEditPage(props) {
 				]}
 			/>
 			<div className='container relative'>
-				<Card>
+				<Card className='mb-2'>
 					{!editing && (
 						<Button
 							size={'xs'}
@@ -138,7 +139,7 @@ export default function CategoryEditPage(props) {
 					<div className='text-md font-bold flex gap-2'>
 						<span className='mr-3'>Thông tin loại hải sản</span>
 					</div>
-					<div className='flex justify-center'>
+					<div className='flex justify-center '>
 						<div
 							className={`sm:w-full md:w-3/4 lg:w-3/5 grid-flow-row-dense grid grid-cols-3 items-center place-content-start ${
 								editing ? 'gap-2' : 'gap-1'
@@ -215,42 +216,42 @@ export default function CategoryEditPage(props) {
 							<Button
 								size={'xs'}
 								className='w-fit'
-								gradientMonochrome={'success'}
-								onClick={formik.handleSubmit}>
-								<FontAwesomeIcon icon={faCheck} className='h-4 w-4 mr-1' />
-								Lưu chỉnh sửa
-							</Button>
-							<Button
-								size={'xs'}
-								className='w-fit'
-								gradientMonochrome={'failure'}
+								gradientDuoTone={'pinkToOrange'}
 								onClick={handleToggleEdit}>
 								<FontAwesomeIcon icon={faXmark} className='h-4 w-4 mr-1' />
 								Hủy
 							</Button>
+							<Button
+								size={'xs'}
+								className='w-fit'
+								gradientDuoTone={'greenToBlue'}
+								onClick={formik.handleSubmit}>
+								<FontAwesomeIcon icon={faCheck} className='h-4 w-4 mr-1' />
+								Lưu thay đổi
+							</Button>
 						</div>
 					) : (
 						<div className='flex justify-center gap-2'>
-							<Link to={'/category'}>
 								<Button
 									className='w-fit h-8 rounded-lg text-center'
 									size={'xs'}
-									gradientMonochrome={'info'}>
-									<FontAwesomeIcon icon={faBars} className='pr-2 w-4 h-4' />
-									Danh sách hải sản
+									onClick={()=>{navigate(-1)}}
+									gradientDuoTone={'tealToLime'}>
+									<FontAwesomeIcon icon={faArrowLeft} className='pr-2 w-4 h-4' />
+									Trở về
 								</Button>
-							</Link>
 							<Button
 								className='w-fit h-8 rounded-lg text-center'
 								onClick={handleOnDelete}
 								size={'xs'}
-								gradientMonochrome={'failure'}>
+								gradientDuoTone={"pinkToOrange"}>
 								<FontAwesomeIcon icon={faTrashAlt} className='pr-2 w-4 h-4' />
 								Xóa
 							</Button>
 						</div>
 					)}
 				</Card>
+				<ProductList categoryId={id}/>
 			</div>
 		</Fragment>
 	) : (

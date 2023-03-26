@@ -3,11 +3,17 @@ import { useLocation } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHome, faShrimp, faTags } from '@fortawesome/free-solid-svg-icons';
+import {
+	faHome,
+	faPeopleArrows,
+	faReceipt,
+	faShrimp,
+	faTags,
+	faWarehouse,
+} from '@fortawesome/free-solid-svg-icons';
 import { faRightToBracket } from '@fortawesome/free-solid-svg-icons';
-import ProtectedRoute from '../auth/ProtectedRoute';
 
-const activeClassName = 'bg-gradient-to-r from-cyan-200 to-blue-200'
+const activeClassName = 'bg-gradient-to-r from-cyan-200 to-blue-200';
 
 export default function MainSidebar(props) {
 	const { pathname } = useLocation();
@@ -16,7 +22,7 @@ export default function MainSidebar(props) {
 	});
 
 	return (
-		<Sidebar collapsed={collapsed} className={'max-w-max'}>
+		<Sidebar collapsed={collapsed} className={'max-w-max z-10'}>
 			<Sidebar.Items>
 				<Sidebar.ItemGroup>
 					<Sidebar.Item
@@ -29,24 +35,47 @@ export default function MainSidebar(props) {
 					>
 						Dashboard
 					</Sidebar.Item>
-						<Sidebar.Item
-							key={'Sản phẩm'}
-							icon={() => <FontAwesomeIcon icon={faShrimp} />}
-							as={Link}
-							to={'/product'}
-							className={pathname.includes('/product') ? activeClassName : ''}>
-							Sản phẩm
-						</Sidebar.Item>
-					<ProtectedRoute role='user'>
-						<Sidebar.Item
-							key={'Loại sản phẩm'}
-							icon={() => <FontAwesomeIcon icon={faTags} />}
-							as={Link}
-							to={'/category'}
-							className={pathname.includes('/category') ? activeClassName: ''}>
-							Loại sản phẩm
-						</Sidebar.Item>
-					</ProtectedRoute>
+					<Sidebar.Item
+						key={'Sản phẩm'}
+						icon={() => <FontAwesomeIcon icon={faShrimp} />}
+						as={Link}
+						to={'/product'}
+						className={pathname.includes('/product') ? activeClassName : ''}>
+						Sản phẩm
+					</Sidebar.Item>
+					<Sidebar.Item
+						key={'Kho'}
+						icon={() => <FontAwesomeIcon icon={faWarehouse} className={'w-4 h-4'} />}
+						as={Link}
+						to={'/stock'}
+						className={pathname.includes('/stock') ? activeClassName : ''}>
+						Kho
+					</Sidebar.Item>
+					<Sidebar.Item
+						key={'Hóa đơn nhập'}
+						icon={() => <FontAwesomeIcon icon={faReceipt} className={'w-4 h-4'}/>}
+						as={Link}
+						to={'/invoice'}
+						className={pathname.includes('/invoice') ? activeClassName : ''}>
+						Hóa đơn nhập
+					</Sidebar.Item>
+					<Sidebar.Item
+						key={'Loại sản phẩm'}
+						icon={() => <FontAwesomeIcon icon={faTags} />}
+						as={Link}
+						to={'/category'}
+						className={pathname.includes('/category') ? activeClassName : ''}>
+						Loại sản phẩm
+					</Sidebar.Item>
+					<Sidebar.Item
+						key={'Nhà cung cấp'}
+						icon={() => <FontAwesomeIcon icon={faPeopleArrows} className={'w-4 h-4'} />}
+						as={Link}
+						to={'/vender'}
+						className={pathname.includes('/vender') ? activeClassName : ''}>
+						Nhà cung cấp
+					</Sidebar.Item>
+
 					<Sidebar.Item
 						key={'Đăng nhập'}
 						icon={() => <FontAwesomeIcon icon={faRightToBracket} />}

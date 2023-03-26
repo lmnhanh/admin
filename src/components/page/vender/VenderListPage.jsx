@@ -1,17 +1,18 @@
-import React, {
-	Fragment,
-	useCallback,
-	useEffect,
-	useRef,
-	useState,
-} from 'react';
-import { Badge, Modal, Label, Select, Card, TextInput } from 'flowbite-react';
+import axios from 'axios';
+import React, { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import {
+	Badge,
+	Modal,
+	Label,
+	Select,
+	Card,
+	TextInput,
+} from 'flowbite-react';
 import Loader from '../../util/Loader';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
 	faAngleLeft,
 	faAngleRight,
-	faFilter,
 	faGear,
 	faHome,
 	faRotate,
@@ -21,49 +22,30 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 import FilterBadge from '../../util/FilterBadge';
-import CategoryList from '../../list/CategoryList';
 import { useSelector, useDispatch } from 'react-redux';
 import {
-	setFilter,
 	setName,
 	setOptionToDefault,
 	setOrder,
 	setPageNo,
-	setPageSize,
 	setSort,
-} from '../../../libs/store/categorySlice';
+	setPageSize
+} from '../../../libs/store/venderSlice';
 import ReactPaginate from 'react-paginate';
-import BreadcrumbPath from './../../util/BreadCrumbPath';
+import BreadcrumbPath from '../../util/BreadCrumbPath';
 import { setAuthorized } from '../../../libs/store/slices';
-import axios from 'axios';
+import VenderList from '../../list/VenderList';
 
-export default function CategoryListPage(props) {
-	const [categories, setCategories] = useState(null);
+export default function VenderListPage(props) {
+	const [venders, setVenders] = useState(null);
 	const [showOption, setShowOption] = useState(false);
 	const [totalPage, setTotalPage] = useState(1);
-	const [totalCategories, setTotalCategories] = useState(0);
+	const [totalVenders, setTotalVenders] = useState(0);
 
-	const { filter, order, sort, name, pageNo, pageSize, refresh } = useSelector(
-		(state) => state.category
-	);
-
-	const searchInput = useRef({ value: name });
+	
+	const {order, sort, name, pageNo, pageSize } = useSelector((state) => state.vender);
+	const searchInput = useRef({value: name});
 	const dispatch = useDispatch();
-
-	const FilterOption = [
-		{
-			name: '',
-			des: 'Tất cả',
-		},
-		{
-			name: 'active',
-			des: 'Đang kinh doanh',
-		},
-		{
-			name: 'unactive',
-			des: 'Ngừng kinh doanh',
-		},
-	];
 
 	const SortOption = [
 		{
@@ -72,44 +54,42 @@ export default function CategoryListPage(props) {
 		},
 		{
 			name: 'name',
-			des: 'Tên loại',
+			des: 'Tên nhà cung cấp',
 		},
 		{
-			name: 'dateupdate',
-			des: 'Ngày cập nhật',
+			name: 'invoice',
+			des: 'Số hóa đơn',
 		},
+		{
+			name: 'datestart',
+			des: 'Ngày hợp tác',
+		}
 	];
 
-	const fetchData = useCallback(async () => {
+	const fetchVenders = useCallback(async () => {
 		try {
-			const { status, data } = await axios.get(
-				`https://localhost:7028/api/categories?page=${pageNo}&size=${pageSize}&name=${name}&filter=${filter}&sort=${sort}&order=${order}`
+			const { data, status } = await axios.get(
+				`/api/venders?name=${name}&page=${pageNo}&size=${pageSize}&sort=${sort}&order=${order}`
 			);
+
 			if (status === 200) {
-				data.categories.length === 0 && dispatch(setPageNo(1));
-				console.log(data.categories.length);
-				setTotalCategories(data.totalRows);
+				data.venders.length === 0 && dispatch(setPageNo(1));
+				setTotalVenders(data.totalRows);
 				setTotalPage(data.totalPages);
-				setCategories(data.categories);
+				setVenders(data.venders);
 			}
-		} catch (errors) {
-			errors.response.status === 401 &&
-				dispatch(setAuthorized({ authorized: false }));
+		} catch (error) {
+			error.response.status === 401 && dispatch(setAuthorized({ authorized: false }));
 		}
-	}, [pageNo, pageSize, filter, sort, order, name, refresh, dispatch]);
+	}, [pageNo, pageSize, sort, order, name, dispatch]);
+
+	useEffect(()=>{
+		document.title = 'Danh sách nhà cung cấp';
+	},[])
 
 	useEffect(() => {
-		document.title = 'Danh sách sản phẩm';
-	}, []);
-
-	useEffect(() => {
-		fetchData();
-	}, [fetchData]);
-
-	const handleFilterOnClick = (prev) => {
-		let nextIndex = FilterOption.findIndex((opt) => opt.name === prev) + 1;
-		dispatch(setFilter(FilterOption[nextIndex % FilterOption.length].name));
-	};
+		fetchVenders();
+	}, [fetchVenders]);
 
 	const handleSortOnClick = (prev) => {
 		let nextIndex = SortOption.findIndex((opt) => opt.name === prev) + 1;
@@ -126,11 +106,6 @@ export default function CategoryListPage(props) {
 
 	const handlePageChange = (page) => {
 		dispatch(setPageNo(page));
-	};
-
-	const handleUseFilter = (value) => {
-		handlePageChange(1);
-		dispatch(setFilter(value));
 	};
 
 	const handleUseSort = (value) => {
@@ -164,40 +139,16 @@ export default function CategoryListPage(props) {
 							</>
 						),
 					},
-					{ to: '/category', text: 'Loại sản phẩm' },
+					{ to: '/vender', text: 'Nhà cung cấp' },
 				]}
 			/>
-
-			{categories === null ? (
+			{venders === null ? (
 				<Loader size={'lg'} />
 			) : (
 				<div className='container min-w-max'>
 					<Card>
 						<div className='text-md font-bold items-center flex gap-2'>
-							<span className='mr-3 min-w-fit'>Danh sách loại hải sản</span>
-
-							{FilterOption.map(
-								(opt, index) =>
-									filter === opt.name && (
-										<FilterBadge
-											key={index}
-											color={'purple'}
-											label={opt.des}
-											handleOnClose={() => handleFilterOnClick(filter)}
-											icon={faFilter}
-										/>
-									)
-							)}
-
-							{/* {name && (
-								<FilterBadge
-									color={'purple'}
-									label={`Tên: "${name}"`}
-									handleOnClose={() => handleFilterOnClick(filter)}
-									icon={faICursor}
-								/>
-							)} */}
-
+							<span className='mr-3 min-w-fit'>Danh sách nhà cung cấp</span>
 							{SortOption.map(
 								(opt, index) =>
 									sort === opt.name && (
@@ -227,7 +178,7 @@ export default function CategoryListPage(props) {
 									icon={faSortAlphaUpAlt}
 								/>
 							)}
-							<Badge className='min-w-max' color={'success'}>{totalCategories} loại</Badge>
+							<Badge className='min-w-max' color={'success'}>{totalVenders} nhà cung cấp</Badge>
 							<Badge
 								color={'purple'}
 								size={'xs'}
@@ -245,14 +196,14 @@ export default function CategoryListPage(props) {
 							<TextInput
 								className='font-medium'
 								type={'search'}
-								spellCheck={false}
 								ref={searchInput}
 								defaultValue={searchInput.current.value}
 								sizing={'sm'}
 								maxLength={20}
 								autoFocus={true}
-								onChange={(event) => {
-									if (event.target.value.length === 0) {
+								spellCheck={false}
+								onChange={(event)=>{
+									if(event.target.value.length === 0){
 										event.preventDefault();
 										dispatch(setName(event.target.value));
 									}
@@ -275,18 +226,6 @@ export default function CategoryListPage(props) {
 							<Modal.Header>Lọc và sắp xếp</Modal.Header>
 							<Modal.Body className='px-4 pt-3'>
 								<div className='flex flex-col gap-1 mb-4'>
-									<div className='block'>
-										<Label>Lọc:</Label>
-									</div>
-									<Select
-										id='filter'
-										sizing={'sm'}
-										value={filter}
-										onChange={(e) => handleUseFilter(e.target.value)}>
-										<option value={''}>Không</option>
-										<option value={'active'}>Đang kinh doanh</option>
-										<option value={'unactive'}>Ngừng kinh doanh</option>
-									</Select>
 									<div className='flex gap-2'>
 										<div className='w-full'>
 											<div className='block'>
@@ -298,8 +237,9 @@ export default function CategoryListPage(props) {
 												value={sort}
 												onChange={(e) => handleUseSort(e.target.value)}>
 												<option value={''}>Id</option>
-												<option value={'name'}>Tên loại</option>
-												<option value={'dateupdate'}>Ngày cập nhật</option>
+												<option value={'name'}>Tên nhà cung cấp</option>
+												<option value={'invoice'}>Số lượng hóa đơn</option>
+												<option value={'datestart'}>Ngày hợp tác</option>
 											</Select>
 										</div>
 										<div className='w-full'>
@@ -319,12 +259,9 @@ export default function CategoryListPage(props) {
 								</div>
 							</Modal.Body>
 						</Modal>
-
-						{categories.length === 0 ? (
-							<div className='text-center font-semibold'>Danh sách loại sản phẩm trống!</div>
-						) : (
+						{venders.length !== 0 ? (
 							<Fragment>
-								<CategoryList data={categories} highlightText={name} />
+								<VenderList data={venders} highlightText={name} offset={(pageNo - 1) * pageSize}/>
 								<div className='fixed w-full self-center bg-white bottom-0 flex justify-center'>
 									{totalPage !== 1 && (
 										<ReactPaginate
@@ -364,12 +301,14 @@ export default function CategoryListPage(props) {
 										defaultValue={pageSize}
 										onChange={(e) => handleChangePagesize(e.target.value)}
 										className='w-fit h-fit mt-2 bg-gray-50 border text-middle border-gray-300 text-gray-900 text-sm rounded-lg'>
-										<option value={5}>5 loại</option>
-										<option value={10}>10 loại</option>
-										<option value={15}>15 loại</option>
+										<option value={5}>5 nhà cung cấp</option>
+										<option value={10}>10 nhà cung cấp</option>
+										<option value={15}>15 nhà cung cấp</option>
 									</Select>
 								</div>
 							</Fragment>
+						) : (
+							<div className='text-center font-semibold'>Danh sách nhà cung cấp trống!</div>
 						)}
 					</Card>
 				</div>

@@ -10,6 +10,7 @@ import { useDispatch } from 'react-redux';
 import { setAuthorized } from '../../libs/store/slices';
 import StepWizard from 'react-step-wizard';
 import UpLoadImage from './product/UploadImage';
+import CategoryOverallPage from './category/CategoryOverallPage';
 
 registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
 
@@ -71,7 +72,6 @@ export default function Dashboard(props) {
 					Click đi
 				</Button>
 			</div>
-			<UpLoadImage />
 		</div>
 	);
 }

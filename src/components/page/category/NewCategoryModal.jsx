@@ -30,7 +30,7 @@ export default function NewCategoryModal({handleOnSuccess, show, handleOnClose})
 				success: (response) => {
 					handleOnSuccess();
 					return (
-						<div className=''>
+						<div>
 							Đã thêm {response.data.name}
 							<Link to={`/category/edit/${response.data.id}`}>
 								<Badge size={'xs'} className='w-fit' color={'info'}>

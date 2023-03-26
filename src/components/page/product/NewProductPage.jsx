@@ -4,7 +4,7 @@ import BreadcrumbPath from './../../util/BreadCrumbPath';
 import { Card } from 'flowbite-react';
 import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css';
 import { useEffect, React, Fragment } from 'react';
-import ProductModify from './ProductModify';
+import ProductNew from './ProductNew';
 
 export default function NewProductPage({ products }) {
 	useEffect(() => {
@@ -31,7 +31,7 @@ export default function NewProductPage({ products }) {
 			<div className='container'>
 				<Card>
 					<span className='mr-3 text-md font-bold'>Thêm sản phẩm mới</span>
-					<ProductModify />
+					<ProductNew />
 				</Card>
 			</div>
 		</Fragment>

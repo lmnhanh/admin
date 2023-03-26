@@ -22,7 +22,7 @@ export default function CategoryList({ data, highlightText }) {
 			</Table.Head>
 			<Table.Body className='divide-y'>
 				{data.map((item, index) => (
-					<Table.Row className='bg-white mx-1 cursor-pointer hover:bg-gradient-to-r hover:from-blue-100 hover:to-gray-100' key={item.id} onClick={()=>{
+					<Table.Row className='bg-white mx-1 cursor-pointer hover:bg-gradient-to-r hover:from-cyan-100 hover:to-pink-100' key={item.id} onClick={()=>{
 						navigate(`/category/edit/${item.id}`);
 					}}>
 						<Table.Cell>{item.id}</Table.Cell>
@@ -41,7 +41,7 @@ export default function CategoryList({ data, highlightText }) {
 									Đang kinh doanh
 								</Badge>
 							) : (
-								<Badge color={'dark'}>
+								<Badge color={'dark'} className='w-fit'>
 									<FontAwesomeIcon icon={faXmark} className='mr-1' />
 									Ngừng kinh doanh
 								</Badge>

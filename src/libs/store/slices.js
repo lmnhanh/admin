@@ -3,7 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
 	name: '',
 	scope: 'Admin',
-	toggleSidebar: false,
+	toggleSidebar: true,
 };
 
 export const appSlice = createSlice({

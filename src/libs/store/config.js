@@ -6,7 +6,9 @@ import thunk from 'redux-thunk';
 import persistStore from "redux-persist/es/persistStore";
 import autoMergeLevel2 from "redux-persist/es/stateReconciler/autoMergeLevel2";
 import { categoryReducer } from "./categorySlice";
+import { venderReducer } from "./venderSlice";
 import { productReducer } from './productSlice';
+import { invoiceReducer } from "./invoiceSlice";
 
 const appPersistConfig = {
   key: 'app',
@@ -30,10 +32,12 @@ export const store = configureStore({
     app: persistedAppReducer,
     auth: persistedAuthReducer,
     category: categoryReducer,
-    product: productReducer
+    product: productReducer,
+    vender: venderReducer,
+    invoice: invoiceReducer
   },
-  middleware: [thunk]
-  // devTools: process.env.NODE_ENV !== 'production'
+  middleware: [thunk],
+  devTools: process.env.NODE_ENV !== 'production'
 });
 
 export const persistor = persistStore(store)

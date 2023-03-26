@@ -12,7 +12,7 @@ export default function FilterBadge(props) {
 		<Badge
 			color={color ?? 'info'}
 			size={'xs'}
-			className={'cursor-pointer w-fit'}
+			className={'cursor-pointer min-w-max'}
 			onClick={handleClick}>
 			{icon && <FontAwesomeIcon icon={icon} className='mr-1' />}
 			{label ?? 'label'}
