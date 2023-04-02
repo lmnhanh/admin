@@ -25,8 +25,9 @@ import {
 import FilterBadge from '../../util/FilterBadge';
 import { useSelector, useDispatch } from 'react-redux';
 import {
-	setVenderName,
+	setUserName,
 	setProductName,
+	setFilter,
 	setOptionToDefault,
 	setFromDate,
 	setToDate,
@@ -35,27 +36,27 @@ import {
 	setSort,
 	setPageSize,
 	setFromPrice,
-	setToPrice
-} from '../../../libs/store/invoiceSlice';
+	setToPrice,
+} from '../../../libs/store/orderSlice';
 import ReactPaginate from 'react-paginate';
 import BreadcrumbPath from '../../util/BreadCrumbPath';
 import { setAuthorized } from '../../../libs/store/slices';
-import InvoiceList from './../../list/InvoiceList';
-import { FormatCurrency, ParseToDate } from './../../../libs/helper';
-import SelectableInput from './../../util/SelectableInput';
+import OrderList from '../../list/OrderList';
+import { FormatCurrency, ParseToDate } from '../../../libs/helper';
+import SelectableInput from '../../util/SelectableInput';
 
-export default function InvoiceListPage() {
-	const [invoices, setInvoices] = useState(null);
-	const [venders, setVenders] = useState([{ value: "0", label: 'Tất cả' }]);
-	const [products, setProducts] = useState([{ value: "0", label: 'Tất cả' }]);
+export default function OrderListPage() {
+	const [orders, setOrders] = useState(null);
+	const [products, setProducts] = useState([{ value: '0', label: 'Tất cả' }]);
 	const [showOption, setShowOption] = useState(false);
 	const [totalPage, setTotalPage] = useState(1);
-	const [totalInvoices, setTotalInvoices] = useState(0);
+	const [totalOrders, setTotalOrders] = useState(0);
 
 	const {
 		order,
 		sort,
-		venderName,
+		filter,
+		userName,
 		productName,
 		fromDate,
 		toDate,
@@ -63,7 +64,9 @@ export default function InvoiceListPage() {
 		fromPrice,
 		toPrice,
 		pageSize,
-	} = useSelector((state) => state.invoice);
+	} = useSelector((state) => state.order);
+
+	const searchUserInput = useRef({ value: userName });
 	const dispatch = useDispatch();
 
 	const SortOption = [
@@ -81,28 +84,57 @@ export default function InvoiceListPage() {
 		},
 	];
 
-	const fetchInvoices = useCallback(async () => {
+	const FilterOption = [
+		{
+			name: '',
+			des: 'Tất cả',
+		},
+		{
+			name: 'processed',
+			des: 'Đã xử lí',
+		},
+		{
+			name: 'processing',
+			des: 'Đang đợi xử lí',
+		},
+		{
+			name: 'success',
+			des: 'Thành công',
+		},
+		{
+			name: 'fail',
+			des: 'Thất bại',
+		},
+		{
+			name: 'anonymous',
+			des: 'Khách vãng lai',
+		},
+	];
+
+	const fetchOrders = useCallback(async () => {
+		console.log(`/api/orders?filter=${filter}&userName=${userName}&productId=${productName}&fromDate=${fromDate}&toDate=${toDate}&fromPrice=${fromPrice}&toPrice=${toPrice}&page=${pageNo}&size=${pageSize}&sort=${sort}&order=${order}`);
 		try {
 			const { data, status } = await axios.get(
-				`/api/invoices?venderId=${venderName}&productId=${productName}&fromDate=${fromDate}&toDate=${toDate}&fromPrice=${fromPrice}&toPrice=${toPrice}&page=${pageNo}&size=${pageSize}&sort=${sort}&order=${order}`
+				`/api/orders?filter=${filter}&userName=${userName}&productId=${productName}&fromDate=${fromDate}&toDate=${toDate}&fromPrice=${fromPrice}&toPrice=${toPrice}&page=${pageNo}&size=${pageSize}&sort=${sort}&order=${order}`
 			);
 
 			if (status === 200) {
-				data.invoices.length === 0 && dispatch(setPageNo(1));
-				setTotalInvoices(data.totalRows);
+				data.orders.length === 0 && dispatch(setPageNo(1));
+				setTotalOrders(data.totalRows);
 				setTotalPage(data.totalPages);
-				setInvoices(data.invoices);
+				setOrders(data.orders);
 			}
 		} catch (error) {
-			error.response.status === 401 &&
+			(error.response.status === 401 || error.response.status === 403) &&
 				dispatch(setAuthorized({ authorized: false }));
 		}
 	}, [
 		pageNo,
 		pageSize,
 		sort,
+		filter,
 		order,
-		venderName,
+		userName,
 		productName,
 		toDate,
 		fromDate,
@@ -112,12 +144,14 @@ export default function InvoiceListPage() {
 	]);
 
 	useEffect(() => {
-		document.title = 'Danh sách đơn nhập hàng';
-		const fetchVenders = async () => {
-			const { data, status } = await axios.get(`/api/venders?page=0`);
-			if (status === 200 && data.venders.length !== 0) {
-				setVenders([{ value: "0", label: 'Tất cả' },
-					...data.venders.map((item) => ({
+		document.title = 'Danh sách đơn bán hàng';
+
+		const fetchProducts = async () => {
+			const { data, status } = await axios.get(`/api/products?page=0`);
+			if (status === 200) {
+				setProducts([
+					{ value: '0', label: 'Tất cả' },
+					...data.products.map((item) => ({
 						value: item.id,
 						label: item.name,
 					})),
@@ -125,26 +159,18 @@ export default function InvoiceListPage() {
 			}
 		};
 
-		const fetchProducts = async () => {
-			const { data, status } = await axios.get(`/api/products?page=0`);
-			if (status === 200) {
-				setProducts([{ value: '0', label: 'Tất cả' },
-					...data.products.map((item) => ({
-						value: item.id,
-						label: item.name,
-					}))
-				]);
-			}
-		};
-
-		fetchInvoices();
-		fetchVenders();
+		fetchOrders();
 		fetchProducts();
-	}, [fetchInvoices]);
+	}, [fetchOrders]);
 
 	const handleSortOnClick = (prev) => {
 		let nextIndex = SortOption.findIndex((opt) => opt.name === prev) + 1;
 		dispatch(setSort(SortOption[nextIndex % SortOption.length].name));
+	};
+
+	const handleFilterOnClick = (prev) => {
+		let nextIndex = FilterOption.findIndex((opt) => opt.name === prev) + 1;
+		dispatch(setFilter(FilterOption[nextIndex % FilterOption.length].name));
 	};
 
 	const handleOrderOnClick = (prev) => {
@@ -166,7 +192,7 @@ export default function InvoiceListPage() {
 
 	const handleUseVenderFilter = (value) => {
 		handlePageChange(1);
-		dispatch(setVenderName(value));
+		dispatch(setUserName(value));
 	};
 
 	const handleUseProductFilter = (value) => {
@@ -223,13 +249,25 @@ export default function InvoiceListPage() {
 					{ to: '/vender', text: 'Nhà cung cấp' },
 				]}
 			/>
-			{invoices === null ? (
+			{orders === null ? (
 				<Loader />
 			) : (
 				<div className='container relative min-w-max'>
 					<Card>
 						<div className='text-md font-bold items-center flex gap-2'>
 							<span className='min-w-fit mr-3'>Danh sách nhà cung cấp</span>
+							{FilterOption.map(
+								(opt, index) =>
+									filter === opt.name && (
+										<FilterBadge
+											key={index}
+											color={'purple'}
+											label={opt.des}
+											handleOnClose={() => handleFilterOnClick(filter)}
+											icon={faFilter}
+										/>
+									)
+							)}
 							{fromDate !== '' && toDate !== '' && (
 								<FilterBadge
 									color={'purple'}
@@ -243,17 +281,24 @@ export default function InvoiceListPage() {
 							)}
 							{Number.parseInt(fromPrice) !== -1 ? (
 								<FilterBadge
-								color={'purple'}
-								label={`Từ ${FormatCurrency(fromPrice)}${Number.parseInt(toPrice) !== -1 ? ` đến ${FormatCurrency(toPrice)}` : ''}`}
-								handleOnClose={() => handleShowOption()}
-								icon={faFilter}
-							/>
-							): Number.parseInt(toPrice) !== -1 && (
-								<FilterBadge
-								color={'purple'}
-								label={`Dưới ${FormatCurrency(toPrice)}`}
-								handleOnClose={() => handleShowOption()}
-								icon={faFilter}/>
+									color={'purple'}
+									label={`Từ ${FormatCurrency(fromPrice)}${
+										Number.parseInt(toPrice) !== -1
+											? ` đến ${FormatCurrency(toPrice)}`
+											: ''
+									}`}
+									handleOnClose={() => handleShowOption()}
+									icon={faFilter}
+								/>
+							) : (
+								Number.parseInt(toPrice) !== -1 && (
+									<FilterBadge
+										color={'purple'}
+										label={`Dưới ${FormatCurrency(toPrice)}`}
+										handleOnClose={() => handleShowOption()}
+										icon={faFilter}
+									/>
+								)
 							)}
 							{SortOption.map(
 								(opt, index) =>
@@ -285,7 +330,7 @@ export default function InvoiceListPage() {
 								/>
 							)}
 							<Badge className='min-w-max' color={'success'}>
-								{totalInvoices} đơn
+								{totalOrders} đơn
 							</Badge>
 							<Badge
 								color={'purple'}
@@ -301,6 +346,29 @@ export default function InvoiceListPage() {
 								size={'xs'}>
 								<FontAwesomeIcon icon={faRotate} />
 							</Badge>
+							<TextInput
+								className='font-medium'
+								type={'search'}
+								spellCheck={false}
+								ref={searchUserInput}
+								defaultValue={userName}
+								sizing={'sm'}
+								maxLength={30}
+								autoFocus={true}
+								onChange={(event) => {
+									if (event.target.value.length === 0) {
+										event.preventDefault();
+										dispatch(setUserName(event.target.value));
+									}
+								}}
+								onKeyDown={(event) => {
+									if (event.key === 'Enter') {
+										event.preventDefault();
+										dispatch(setUserName(event.target.value));
+									}
+								}}
+								placeholder={'Tìm kiếm khách hàng'}
+							/>
 						</div>
 
 						<Modal
@@ -313,26 +381,41 @@ export default function InvoiceListPage() {
 							<Modal.Body className='px-4 pt-3'>
 								<div className='grid grid-cols-2 gap-2'>
 									<div>
-										<Label>Nhà cung cấp:</Label>
-										<SelectableInput
-											isSearchable={true}
-											defaultValue={venders[0]}
-											onChange={(selected) => {
-												handleUseVenderFilter(selected.value)
+										<Label>Tên khách hàng:</Label>
+										<input
+											className='rounded-md h-fit text-sm focus:border-blue-500 ring-2 focus:ring-blue-300 w-full'
+											type={'search'}
+											spellCheck={false}
+											ref={searchUserInput}
+											defaultValue={userName}
+											maxLength={20}
+											autoFocus={true}
+											onChange={(event) => {
+												if (event.target.value.length === 0) {
+													event.preventDefault();
+													dispatch(setUserName(event.target.value));
+												}
 											}}
-											options={venders}
+											onKeyDown={(event) => {
+												if (event.key === 'Enter') {
+													event.preventDefault();
+													dispatch(setUserName(event.target.value));
+												}
+											}}
+											placeholder={'Tìm kiếm'}
 										/>
 									</div>
 									<div>
 										<Label>Sản phẩm:</Label>
-										<SelectableInput
-											defaultValue={products[0]}
+											<SelectableInput
+											defaultValue={{ value: '0', label: 'Tất cả' }}
 											isSearchable={true}
 											onChange={(selected) => {
-												handleUseProductFilter(selected.value)
+												handleUseProductFilter(selected.value);
 											}}
 											options={products}
 										/>
+										
 									</div>
 									<div>
 										<Label>Giá trị từ:</Label>
@@ -344,7 +427,9 @@ export default function InvoiceListPage() {
 											<option value={500000}>{FormatCurrency(500000)}</option>
 											<option value={1000000}>{FormatCurrency(1000000)}</option>
 											<option value={5000000}>{FormatCurrency(5000000)}</option>
-											<option value={10000000}>{FormatCurrency(10000000)}</option>
+											<option value={10000000}>
+												{FormatCurrency(10000000)}
+											</option>
 										</Select>
 									</div>
 									<div>
@@ -354,10 +439,12 @@ export default function InvoiceListPage() {
 											value={toPrice}
 											onChange={(e) => handleUseToPrice(e.target.value)}>
 											<option value={-1}>Tất cả</option>
+											<option value={500000}>{FormatCurrency(500000)}</option>
 											<option value={1000000}>{FormatCurrency(1000000)}</option>
 											<option value={5000000}>{FormatCurrency(5000000)}</option>
-											<option value={10000000}>{FormatCurrency(10000000)}</option>
-											<option value={20000000}>{FormatCurrency(20000000)}</option>
+											<option value={10000000}>
+												{FormatCurrency(10000000)}
+											</option>
 										</Select>
 									</div>
 									<div>
@@ -410,9 +497,13 @@ export default function InvoiceListPage() {
 								</div>
 							</Modal.Body>
 						</Modal>
-						{invoices.length !== 0 ? (
+						{orders.length !== 0 ? (
 							<Fragment>
-								<InvoiceList data={invoices} offset={(pageNo - 1) * pageSize} />
+								<OrderList
+									data={orders}
+									offset={(pageNo - 1) * pageSize}
+									highlightText={userName}
+								/>
 								<div className='fixed w-full bg-white bottom-0 self-center flex justify-center'>
 									{totalPage !== 1 && (
 										<ReactPaginate

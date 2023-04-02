@@ -9,6 +9,7 @@ import {
 	faReceipt,
 	faShrimp,
 	faTags,
+	faTruckArrowRight,
 	faWarehouse,
 } from '@fortawesome/free-solid-svg-icons';
 import { faRightToBracket } from '@fortawesome/free-solid-svg-icons';
@@ -26,7 +27,6 @@ export default function MainSidebar(props) {
 			<Sidebar.Items>
 				<Sidebar.ItemGroup>
 					<Sidebar.Item
-						key={'Dashboard'}
 						icon={() => <FontAwesomeIcon icon={faHome} />}
 						as={Link}
 						to={'/'}
@@ -36,7 +36,13 @@ export default function MainSidebar(props) {
 						Dashboard
 					</Sidebar.Item>
 					<Sidebar.Item
-						key={'Sản phẩm'}
+						icon={() => <FontAwesomeIcon icon={faTruckArrowRight} />}
+						as={Link}
+						to={'/order'}
+						className={pathname.includes('/order') ? activeClassName : ''}>
+						Đơn bán hàng
+					</Sidebar.Item>
+					<Sidebar.Item
 						icon={() => <FontAwesomeIcon icon={faShrimp} />}
 						as={Link}
 						to={'/product'}
@@ -44,7 +50,6 @@ export default function MainSidebar(props) {
 						Sản phẩm
 					</Sidebar.Item>
 					<Sidebar.Item
-						key={'Kho'}
 						icon={() => <FontAwesomeIcon icon={faWarehouse} className={'w-4 h-4'} />}
 						as={Link}
 						to={'/stock'}
@@ -52,7 +57,6 @@ export default function MainSidebar(props) {
 						Kho
 					</Sidebar.Item>
 					<Sidebar.Item
-						key={'Hóa đơn nhập'}
 						icon={() => <FontAwesomeIcon icon={faReceipt} className={'w-4 h-4'}/>}
 						as={Link}
 						to={'/invoice'}
@@ -60,7 +64,6 @@ export default function MainSidebar(props) {
 						Hóa đơn nhập
 					</Sidebar.Item>
 					<Sidebar.Item
-						key={'Loại sản phẩm'}
 						icon={() => <FontAwesomeIcon icon={faTags} />}
 						as={Link}
 						to={'/category'}
@@ -68,7 +71,6 @@ export default function MainSidebar(props) {
 						Loại sản phẩm
 					</Sidebar.Item>
 					<Sidebar.Item
-						key={'Nhà cung cấp'}
 						icon={() => <FontAwesomeIcon icon={faPeopleArrows} className={'w-4 h-4'} />}
 						as={Link}
 						to={'/vender'}
@@ -77,7 +79,6 @@ export default function MainSidebar(props) {
 					</Sidebar.Item>
 
 					<Sidebar.Item
-						key={'Đăng nhập'}
 						icon={() => <FontAwesomeIcon icon={faRightToBracket} />}
 						as={Link}
 						to={'/login'}

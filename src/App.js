@@ -21,6 +21,10 @@ import InvoiceListPage from './components/page/invoice/InvoiceListPage';
 import InvoiceInfoPage from './components/page/invoice/InvoiceInfoPage';
 import NewInvoicePage from './components/page/invoice/NewInvoicePage';
 import StockMainPage from './components/page/stock/StockMainPage';
+import OrderMainPage from './components/page/order/OrderMainPage';
+import OrderListPage from './components/page/order/OrderListPage';
+import OrderInfoPage from './components/page/order/OrderInfoPage';
+import NewOrderPage from './components/page/order/NewOrderPage';
 
 const router = createBrowserRouter([
 	{
@@ -120,6 +124,28 @@ const router = createBrowserRouter([
 					},
 					{
 						path: '/invoice/overall',
+						element: <CategoryOverallPage />,
+					}
+				],
+			},
+			{
+				path: '/order',
+				element: <OrderMainPage />,
+				children: [
+					{
+						path: '/order',
+						element: <OrderListPage />,
+					},
+					{
+						path: '/order/:id',
+						element: <OrderInfoPage />,
+					},
+					{
+						path: '/order/new',
+						element: <NewOrderPage />,
+					},
+					{
+						path: '/order/overall',
 						element: <CategoryOverallPage />,
 					}
 				],

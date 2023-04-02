@@ -1,13 +1,14 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-export const invoiceSlice = createSlice({
-	name: 'invoice',
+export const orderSlice = createSlice({
+	name: 'order',
 	initialState: {
-		venderName: '0',
+		userName: '',
+		filter: '',
 		productName: '0',
 		fromPrice: -1,
 		toPrice: -1,
-		fromDate: new Date().toISOString(),
+		fromDate: "",
 		toDate: new Date().toISOString(),
 		sort: 'datecreate',
 		order: 'desc',
@@ -21,8 +22,11 @@ export const invoiceSlice = createSlice({
 		setSort: (state, action) => {
 			state.sort = action.payload;
 		},
-		setVenderName: (state, action) => {
-			state.venderName = action.payload;
+		setFilter: (state, action) => {
+			state.filter = action.payload;
+		},
+		setUserName: (state, action) => {
+			state.userName = action.payload;
 		},
 		setProductName: (state, action) => {
 			state.productName = action.payload;
@@ -46,12 +50,13 @@ export const invoiceSlice = createSlice({
 			state.toPrice = action.payload;
 		},
 		setOptionToDefault: (state, action) => {
-			state.venderName = '0';
+			state.filter = '';
+			state.userName = '';
 			state.productName = '0';
 			state.fromDate = "";
+			state.toDate = new Date().toISOString();
 			state.fromPrice = -1;
 			state.toPrice = -1;
-			state.toDate = new Date().toISOString();
 			state.sort = 'datecreate';
 			state.order = 'desc';
 			state.pageNo = 1;
@@ -63,7 +68,7 @@ export const invoiceSlice = createSlice({
 export const {
 	setOrder,
 	setSort,
-	setVenderName,
+	setUserName,
 	setFromDate,
 	setToDate,
 	setProductName,
@@ -71,6 +76,7 @@ export const {
 	setPageNo,
 	setPageSize,
 	setFromPrice,
-	setToPrice
-} = invoiceSlice.actions;
-export const invoiceReducer = invoiceSlice.reducer;
+	setToPrice,
+	setFilter
+} = orderSlice.actions;
+export const orderReducer = orderSlice.reducer;

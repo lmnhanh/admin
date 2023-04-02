@@ -1,5 +1,4 @@
-import React from 'react';
-import Loader from '../../util/Loader';
+import React, { Fragment } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHome } from '@fortawesome/free-solid-svg-icons';
 
@@ -8,7 +7,7 @@ import BreadcrumbPath from './../../util/BreadCrumbPath';
 
 export default function ProductListPage() {
 	return (
-		<div>
+		<Fragment>
 			<BreadcrumbPath
 				items={[
 					{
@@ -25,6 +24,6 @@ export default function ProductListPage() {
 			<div className='container min-w-max'>
 				<ProductList />
 			</div>
-		</div>
+		</Fragment>
 	);
 }

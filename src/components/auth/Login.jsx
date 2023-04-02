@@ -112,6 +112,7 @@ export default function Login(props) {
 						<Button
 							type='submit'
 							gradientDuoTone={'cyanToBlue'}
+							disabled={login}
 							size={'sm'}
 							className='w-fit mt-2 self-center'>
 							{login && <Loader size={'sm'} className={'mr-2'}/>}Đăng nhập

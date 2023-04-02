@@ -128,7 +128,7 @@ export default function VenderListPage(props) {
 	};
 
 	return (
-		<div>
+		<Fragment>
 			<BreadcrumbPath
 				items={[
 					{
@@ -143,7 +143,7 @@ export default function VenderListPage(props) {
 				]}
 			/>
 			{venders === null ? (
-				<Loader size={'lg'} />
+				<Loader />
 			) : (
 				<div className='container min-w-max'>
 					<Card>
@@ -313,6 +313,6 @@ export default function VenderListPage(props) {
 					</Card>
 				</div>
 			)}
-		</div>
+		</Fragment>
 	);
 }

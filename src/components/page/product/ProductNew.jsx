@@ -2,7 +2,14 @@ import { faWarning, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
-import { Badge, Button, Checkbox, Label, TextInput } from 'flowbite-react';
+import {
+	Badge,
+	Button,
+	Checkbox,
+	Label,
+	Modal,
+	TextInput,
+} from 'flowbite-react';
 import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css';
 import axios from 'axios';
 import SelectableInput from '../../util/SelectableInput';
@@ -66,7 +73,9 @@ export default function ProductNew() {
 						error: (error) => {
 							if (error.response?.status === 400) {
 								let finalObj = {};
-								error.response?.data.forEach(item => Object.assign(finalObj, item))
+								error.response?.data.forEach((item) =>
+									Object.assign(finalObj, item)
+								);
 								formik.setErrors(finalObj);
 								return 'Lỗi! Không thể thêm sản phẩm!';
 							}
@@ -82,7 +91,9 @@ export default function ProductNew() {
 	useEffect(() => {
 		document.title = 'Thêm sản phẩm';
 		const fetchListCategories = async () => {
-			const { status, data } = await axios.get('/api/categories?page=0&filter=active');
+			const { status, data } = await axios.get(
+				'/api/categories?page=0&filter=active'
+			);
 			if (status === 200 && data.categories.length !== 0) {
 				setCategories(
 					data.categories.map((item) => ({
@@ -96,7 +107,15 @@ export default function ProductNew() {
 		fetchListCategories();
 	}, []);
 
-	return (
+	return categories.length === 0 ? (
+		<div className='self-center flex gap-2'>
+			<span className='text-lg'>Cần thêm loại sản phẩm trước khi thêm sản phẩm mới!</span>
+			<Button gradientDuoTone={'cyanToBlue'} size={'xs'} onClick={()=> navigate("/category")}>
+				Thêm ngay
+				<FontAwesomeIcon icon={faArrowRight} className={'ml-1'}/>
+			</Button>
+		</div>
+	) : (
 		<Fragment>
 			<div className='grid grid-cols-2 gap-2 md:grid-cols-3'>
 				<div className='flex flex-col'>
@@ -115,14 +134,13 @@ export default function ProductNew() {
 							'failure'
 						}
 						helperText={
-							<span>
-								{formik.touched.wellKnownId && formik.errors.wellKnownId && (
-									<span>
-										<FontAwesomeIcon icon={faWarning} className='px-1' />
-										{formik.errors.wellKnownId}
-									</span>
-								)}
-							</span>
+							formik.touched.wellKnownId &&
+							formik.errors.wellKnownId && (
+								<span>
+									<FontAwesomeIcon icon={faWarning} className='px-1' />
+									{formik.errors.wellKnownId}
+								</span>
+							)
 						}
 					/>
 				</div>
@@ -138,14 +156,13 @@ export default function ProductNew() {
 						placeholder='Cua cà mau loại 1'
 						color={formik.touched.name && formik.errors.name && 'failure'}
 						helperText={
-							<span>
-								{formik.touched.name && formik.errors.name && (
-									<span>
-										<FontAwesomeIcon icon={faWarning} className='px-1' />
-										{formik.errors.name}
-									</span>
-								)}
-							</span>
+							formik.touched.name &&
+							formik.errors.name && (
+								<span>
+									<FontAwesomeIcon icon={faWarning} className='px-1' />
+									{formik.errors.name}
+								</span>
+							)
 						}
 					/>
 				</div>

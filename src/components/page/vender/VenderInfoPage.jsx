@@ -431,12 +431,14 @@ export default function VenderInfoPage(props) {
 									/>
 									Trở về
 								</Button>
-								<Link to={`/product/${id}/detail`} className={'self-center'}>
-									<Button size={'xs'} gradientDuoTone={'greenToBlue'}>
-										Thêm hóa đơn nhập hàng
-										<FontAwesomeIcon icon={faArrowRight} className={'ml-1'} />
-									</Button>
-								</Link>
+								<Button
+									className={'self-center'}
+									size={'xs'}
+									onClick={()=> navigate(`/invoice/new?vender=${vender.id}`)}
+									gradientDuoTone={'greenToBlue'}>
+									Thêm hóa đơn nhập hàng
+									<FontAwesomeIcon icon={faArrowRight} className={'ml-1'} />
+								</Button>
 							</div>
 						</Fragment>
 					)}

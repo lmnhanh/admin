@@ -38,7 +38,7 @@ export default function NewProductDetail() {
 			unit: '',
 			description: '',
 			importPrice: 1000,
-			toWholeSale: 1000,
+			toWholesale: 1000,
 			retailPrice: 1000,
 			wholePrice: 1000,
 			isActive: true,
@@ -54,40 +54,56 @@ export default function NewProductDetail() {
 				.required('Mô tả về sản phẩm là bắt buộc!'),
 			retailPrice: yup
 				.number()
-				.min(0, 'Giá bán lẻ không hợp lệ!')
+				.min(1, 'Giá bán lẻ không hợp lệ!')
 				.max(100000000, 'Giá bán lẻ không hợp lệ!')
 				.required('Giá bán lẻ không được trống!'),
 			wholePrice: yup
 				.number()
-				.min(0, 'Giá bán sỉ không hợp lệ!')
+				.min(1, 'Giá bán sỉ không hợp lệ!')
 				.max(100000000, 'Giá bán sỉ không hợp lệ!')
 				.required('Giá bán sỉ không được trống!'),
 			importPrice: yup
 				.number()
-				.min(0, 'Giá nhập không hợp lệ!')
+				.min(1, 'Giá nhập không hợp lệ!')
 				.max(500000000, 'Giá nhập không hợp lệ!')
 				.required('Giá nhập không được trống!'),
-			toWholeSale: yup
+			toWholesale: yup
 				.number()
-				.min(0, 'Điều kiện không hợp lệ!')
+				.min(1, 'Điều kiện không hợp lệ!')
 				.max(500000000, 'Điều kiện không hợp lệ!')
 				.required('Điều kiện không được trống!'),
 		}),
 		onSubmit: (values) => {
 			try {
-				ToastPromise(axios.post('/api/productdetails/', values), {
-					pending: 'Đang thêm chi tiết sản phẩm',
-					success: (response) => {
-						setDetails([...details, response.data]);
-						formik.resetForm();
-						return (
-							<div className=''>Đã thêm loại {response.data.description}</div>
-						);
-					},
-					error: (error) => {
-						return 'Lỗi! Không thể thêm chi tiết sản phẩm!';
-					},
-				});
+				if (editing) {
+					ToastPromise(axios.put(`/api/productdetails/${formik.values.id}`,values),{
+							pending: 'Đang cập nhật chi tiết sản phẩm',
+							success: (response) => {
+								setEditing(false);
+								formik.resetForm();
+								return <div>Đã cập nhật chi tiết sản phẩm</div>;
+							},
+							error: (error) => {
+								return 'Lỗi! Không thể cập nhật chi tiết sản phẩm!';
+							},
+						}
+					);
+				} else {
+					ToastPromise(axios.post('/api/productdetails/', values), {
+						pending: 'Đang thêm chi tiết sản phẩm',
+						success: (response) => {
+							console.log([...details, response.data]);
+							setDetails([...details, response.data]);
+							formik.resetForm();
+							return (
+								<div className=''>Đã thêm loại {response.data.description}</div>
+							);
+						},
+						error: (error) => {
+							return 'Lỗi! Không thể thêm chi tiết sản phẩm!';
+						},
+					});
+				}
 			} catch (error) {
 				navigate('/');
 			}
@@ -98,11 +114,9 @@ export default function NewProductDetail() {
 		ToastPromise(axios.delete(`/api/productdetails/${formik.values.id}`), {
 			pending: 'Đang xóa chi tiết sản phẩm',
 			success: (response) => {
-				setDetails([...details, response.data]);
+				fetchDetails();
 				formik.resetForm();
-				return (
-					<div className=''>Đã đã xóa chi tiết {response.data.description}</div>
-				);
+				return <div>Đã xóa chi tiết {response.data.description}</div>;
 			},
 			error: (error) => {
 				return 'Lỗi! Không thể xóa chi tiết sản phẩm!';
@@ -112,10 +126,10 @@ export default function NewProductDetail() {
 
 	const fetchDetails = useCallback(async () => {
 		const { status, data } = await axios.get(
-			`api/productdetails?productId=${id}`
+			`api/productdetails?productId=${id}&isActive=false`
 		);
 		status === 200 && setDetails(data);
-	}, [id]);
+	}, [id, editing]);
 
 	useEffect(() => {
 		fetchDetails();
@@ -133,10 +147,10 @@ export default function NewProductDetail() {
 			unit: detail.unit,
 			description: detail.description,
 			importPrice: detail.importPrice,
-			toWholeSale: detail.toWholeSale,
+			toWholesale: detail.toWholesale,
 			retailPrice: detail.retailPrice,
 			wholePrice: detail.wholePrice,
-			isActive: detail.isActive,
+			isActive: detail.isAvailable,
 		});
 	};
 
@@ -170,10 +184,10 @@ export default function NewProductDetail() {
 								value={formik.values.unit}
 								onChange={formik.handleChange}
 								placeholder={'20 con/kg, 1,3 kg/con, ...'}
-								color={formik.touched.unit && formik.errors.unit && 'failure'}
+								color={formik.errors.unit && 'failure'}
 								helperText={
 									<span>
-										{formik.touched.unit && formik.errors.unit && (
+										{formik.errors.unit && (
 											<span>
 												<FontAwesomeIcon icon={faWarning} className='px-1' />
 												{formik.errors.unit}
@@ -193,20 +207,15 @@ export default function NewProductDetail() {
 								value={formik.values.description}
 								onChange={formik.handleChange}
 								placeholder={'Tôm loại 1, cua loại 1, ...'}
-								color={
-									formik.touched.description &&
-									formik.errors.description &&
-									'failure'
-								}
+								color={formik.errors.description && 'failure'}
 								helperText={
 									<span>
-										{formik.touched.description &&
-											formik.errors.description && (
-												<span>
-													<FontAwesomeIcon icon={faWarning} className='px-1' />
-													{formik.errors.description}
-												</span>
-											)}
+										{formik.errors.description && (
+											<span>
+												<FontAwesomeIcon icon={faWarning} className='px-1' />
+												{formik.errors.description}
+											</span>
+										)}
 									</span>
 								}
 							/>
@@ -222,20 +231,15 @@ export default function NewProductDetail() {
 								value={formik.values.importPrice}
 								onChange={formik.handleChange}
 								placeholder={'Đơn vị: VNĐ/kg'}
-								color={
-									formik.touched.importPrice &&
-									formik.errors.importPrice &&
-									'failure'
-								}
+								color={formik.errors.importPrice && 'failure'}
 								helperText={
 									<span>
-										{formik.touched.importPrice &&
-											formik.errors.importPrice && (
-												<span>
-													<FontAwesomeIcon icon={faWarning} className='px-1' />
-													{formik.errors.importPrice}
-												</span>
-											)}
+										{formik.errors.importPrice && (
+											<span>
+												<FontAwesomeIcon icon={faWarning} className='px-1' />
+												{formik.errors.importPrice}
+											</span>
+										)}
 									</span>
 								}
 							/>
@@ -252,14 +256,10 @@ export default function NewProductDetail() {
 								value={formik.values.wholePrice}
 								onChange={formik.handleChange}
 								placeholder={'Đơn vị: VNĐ/kg'}
-								color={
-									formik.touched.wholePrice &&
-									formik.errors.wholePrice &&
-									'failure'
-								}
+								color={formik.errors.wholePrice && 'failure'}
 								helperText={
 									<span>
-										{formik.touched.wholePrice && formik.errors.wholePrice && (
+										{formik.errors.wholePrice && (
 											<span>
 												<FontAwesomeIcon icon={faWarning} className='px-1' />
 												{formik.errors.wholePrice}
@@ -280,50 +280,40 @@ export default function NewProductDetail() {
 								value={formik.values.retailPrice}
 								onChange={formik.handleChange}
 								placeholder={'Đơn vị: VNĐ/kg'}
-								color={
-									formik.touched.retailPrice &&
-									formik.errors.retailPrice &&
-									'failure'
-								}
+								color={formik.errors.retailPrice && 'failure'}
 								helperText={
 									<span>
-										{formik.touched.retailPrice &&
-											formik.errors.retailPrice && (
-												<span>
-													<FontAwesomeIcon icon={faWarning} className='px-1' />
-													{formik.errors.retailPrice}
-												</span>
-											)}
+										{formik.errors.retailPrice && (
+											<span>
+												<FontAwesomeIcon icon={faWarning} className='px-1' />
+												{formik.errors.retailPrice}
+											</span>
+										)}
 									</span>
 								}
 							/>
 						</div>
 						<div>
-							<Label htmlFor='toWholeSale'>Điền kiện đạt giá sỉ:</Label>
+							<Label htmlFor='toWholesale'>Điền kiện đạt giá sỉ:</Label>
 							<TextInput
 								title='Đơn hàng đạt điều kiện như thế nào để có thể lấy với giá sỉ'
-								id={'toWholeSale'}
-								name={'toWholeSale'}
+								id={'toWholesale'}
+								name={'toWholesale'}
 								min={0}
 								sizing={'md'}
 								type={'number'}
-								value={formik.values.toWholeSale}
+								value={formik.values.toWholesale}
 								onChange={formik.handleChange}
 								placeholder={'Đơn vị: kg'}
-								color={
-									formik.touched.toWholeSale &&
-									formik.errors.toWholeSale &&
-									'failure'
-								}
+								color={formik.errors.toWholesale && 'failure'}
 								helperText={
 									<span>
-										{formik.touched.toWholeSale &&
-											formik.errors.toWholeSale && (
-												<span>
-													<FontAwesomeIcon icon={faWarning} className='px-1' />
-													{formik.errors.toWholeSale}
-												</span>
-											)}
+										{formik.errors.toWholesale && (
+											<span>
+												<FontAwesomeIcon icon={faWarning} className='px-1' />
+												{formik.errors.toWholesale}
+											</span>
+										)}
 									</span>
 								}
 							/>
@@ -368,7 +358,7 @@ export default function NewProductDetail() {
 								size={'xs'}
 								gradientDuoTone={'greenToBlue'}
 								className={'px-2'}
-								onClick={() => {}}>
+								onClick={formik.handleSubmit}>
 								<FontAwesomeIcon icon={faCheck} className={'mr-1'} />
 								Lưu chỉnh sửa
 							</Button>
@@ -398,8 +388,8 @@ export default function NewProductDetail() {
 						<Table.HeadCell>Loại, phẩm cách</Table.HeadCell>
 						<Table.HeadCell>Mô tả</Table.HeadCell>
 						<Table.HeadCell>Giá nhập</Table.HeadCell>
-						<Table.HeadCell>Giá sỉ</Table.HeadCell>
 						<Table.HeadCell>Giá lẻ</Table.HeadCell>
+						<Table.HeadCell>Giá sỉ</Table.HeadCell>
 						<Table.HeadCell>Điều kiện giá sỉ</Table.HeadCell>
 						<Table.HeadCell>Trạng thái</Table.HeadCell>
 					</Table.Head>
@@ -409,16 +399,20 @@ export default function NewProductDetail() {
 								onClick={() => {
 									handleDetailClicked(item);
 								}}
-								className='bg-white mx-1 cursor-pointer hover:bg-gradient-to-r hover:from-blue-100 hover:to-gray-100'
+								className={`${
+									item.id === formik.values.id
+										? 'bg-gradient-to-r from-blue-200 to-gray-200'
+										: 'bg-white'
+								} mx-1 cursor-pointer hover:bg-gradient-to-r hover:from-blue-100 hover:to-gray-100`}
 								key={index}>
 								<Table.Cell>{item.unit}</Table.Cell>
 								<Table.Cell>{item.description}</Table.Cell>
 								<Table.Cell>{FormatCurrency(item.importPrice)}</Table.Cell>
 								<Table.Cell>{FormatCurrency(item.retailPrice)}</Table.Cell>
 								<Table.Cell>{FormatCurrency(item.wholePrice)}</Table.Cell>
-								<Table.Cell>{`> ${item.toWholeSale} kg`}</Table.Cell>
+								<Table.Cell>{`> ${item.toWholesale} kg`}</Table.Cell>
 								<Table.Cell>
-									{item.isActive ? (
+									{item.isAvailable ? (
 										<Badge className='w-fit' color={'success'}>
 											<FontAwesomeIcon icon={faCheck} className='mr-1' />
 											Đang kinh doanh

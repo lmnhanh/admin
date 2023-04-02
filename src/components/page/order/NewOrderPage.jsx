@@ -18,12 +18,12 @@ import BreadcrumbPath from '../../util/BreadCrumbPath';
 import SelectableInput from '../../util/SelectableInput';
 import useQuery from '../../util/useQuery';
 
-export default function NewInvoicePage() {
+export default function NewOrderPage() {
 	const query = useQuery();
 	const [venders, setVenders] = useState([]);
 	const [products, setProducts] = useState([]);
 	const [details, setDetails] = useState([]);
-	const [invoiceDetails, setInvoiceDetails] = useState([]);
+	const [orderDetails, setOrderDetails] = useState([]);
 	const [detailStep, setDetailStep] = useState(false);
 	const [venderStep, setVenderStep] = useState(true);
 	const [confirmStep, setConfirmStep] = useState(!venderStep);
@@ -31,7 +31,7 @@ export default function NewInvoicePage() {
 	const formik = useFormik({
 		initialValues: {
 			venderId: query.get('vender') ?? '',
-			invoiceDetails: [],
+			orderDetails: [],
 			details: [],
 			quantity: 1,
 			realTotal: 1,
@@ -45,18 +45,18 @@ export default function NewInvoicePage() {
 		}),
 		onSubmit: (values) => {
 			ToastPromise(
-				axios.post('/api/invoices/', {
+				axios.post('/api/orders/', {
 					venderId: formik.values.venderId,
-					invoiceDetails: formik.values.invoiceDetails,
+					orderDetails: formik.values.orderDetails,
 					realTotal: formik.values.realTotal,
 				}),
 				{
-					pending: 'Đang thêm đơn nhập hàng',
+					pending: 'Đang thêm đơn bán hàng',
 					success: (response) => {
 						return (
 							<div>
-								Đã thêm đơn nhập hàng
-								<Link to={`/invoice/${response.data.id}`}>
+								Đã thêm đơn bán hàng
+								<Link to={`/order/${response.data.id}`}>
 									<Badge size={'xs'} className='w-fit' color={'info'}>
 										Xem chi tiết
 									</Badge>
@@ -65,7 +65,7 @@ export default function NewInvoicePage() {
 						);
 					},
 					error: (error) => {
-						return 'Lỗi! Không thể thêm đơn nhập hàng!';
+						return 'Lỗi! Không thể thêm đơn bán hàng!';
 					},
 				}
 			);
@@ -95,13 +95,13 @@ export default function NewInvoicePage() {
 		let detail = details.find(
 			(detail) => detail.id === Number.parseInt(formik.values.productDetailId)
 		);
-		var existDetailIndex = invoiceDetails.findIndex(
+		var existDetailIndex = orderDetails.findIndex(
 			(detail) =>
 				detail.productDetailId ===
 				Number.parseInt(formik.values.productDetailId)
 		);
 		if (existDetailIndex === -1) {
-			setInvoiceDetails((prev) => [
+			setOrderDetails((prev) => [
 				...prev,
 				{
 					productDetailId: Number.parseInt(formik.values.productDetailId),
@@ -111,7 +111,7 @@ export default function NewInvoicePage() {
 				},
 			]);
 		} else {
-			setInvoiceDetails((prev) => {
+			setOrderDetails((prev) => {
 				prev[existDetailIndex].quantity = formik.values.quantity;
 				return [...prev];
 			});
@@ -147,7 +147,7 @@ export default function NewInvoicePage() {
 
 		fetchVenders();
 		fetchProducts();
-		document.title = 'Thêm đơn nhập hàng';
+		document.title = 'Thêm đơn bán hàng';
 	}, [formik.values]);
 
 	return (
@@ -162,8 +162,8 @@ export default function NewInvoicePage() {
 							</>
 						),
 					},
-					{ to: '/invoice', text: 'Đơn nhập hàng' },
-					{ to: `/invoice/new`, text: 'Thêm đơn nhập hàng mới' },
+					{ to: '/order', text: 'Đơn bán hàng' },
+					{ to: `/order/new`, text: 'Thêm đơn bán hàng mới' },
 				]}
 			/>
 			<Card className='relative'>
@@ -209,12 +209,12 @@ export default function NewInvoicePage() {
 								<Table.HeadCell>{`Số lượng (kg)`}</Table.HeadCell>
 							</Table.Head>
 							<Table.Body className='divide-y'>
-								{invoiceDetails.map((item, index) => (
+								{orderDetails.map((item, index) => (
 									<Table.Row
 										title={'Click để xóa'}
 										onClick={() => {
-											invoiceDetails.splice(index, 1);
-											setInvoiceDetails([...invoiceDetails]);
+											orderDetails.splice(index, 1);
+											setOrderDetails([...orderDetails]);
 										}}
 										className='bg-white mx-1 cursor-pointer hover:bg-gradient-to-r hover:from-blue-100 hover:to-gray-100'
 										key={index}>
@@ -302,7 +302,7 @@ export default function NewInvoicePage() {
 							<Button
 								size={'xs'}
 								gradientDuoTone={'greenToBlue'}
-								disabled={invoiceDetails.length === 0}
+								disabled={orderDetails.length === 0}
 								onClick={() => {
 									setDetailStep(false);
 									setVenderStep(true);
@@ -321,15 +321,15 @@ export default function NewInvoicePage() {
 							<Button
 								size={'xs'}
 								gradientDuoTone={'greenToBlue'}
-								disabled={invoiceDetails.length === 0}
+								disabled={orderDetails.length === 0}
 								onClick={() => {
-									formik.values.realTotal = invoiceDetails.reduce(
+									formik.values.realTotal = orderDetails.reduce(
 										(total, detail) => {
 											return total + detail.importPrice * detail.quantity;
 										},
 										0
 									);
-									formik.values.invoiceDetails = invoiceDetails.map(
+									formik.values.orderDetails = orderDetails.map(
 										(detail) => ({
 											productDetailId: detail.productDetailId,
 											quantity: detail.quantity,

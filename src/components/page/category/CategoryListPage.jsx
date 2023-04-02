@@ -153,7 +153,7 @@ export default function CategoryListPage(props) {
 	};
 
 	return (
-		<div>
+		<Fragment>
 			<BreadcrumbPath
 				items={[
 					{
@@ -169,7 +169,7 @@ export default function CategoryListPage(props) {
 			/>
 
 			{categories === null ? (
-				<Loader size={'lg'} />
+				<Loader />
 			) : (
 				<div className='container min-w-max'>
 					<Card>
@@ -374,6 +374,6 @@ export default function CategoryListPage(props) {
 					</Card>
 				</div>
 			)}
-		</div>
+		</Fragment>
 	);
 }

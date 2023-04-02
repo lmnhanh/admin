@@ -61,7 +61,7 @@ export default function ProductInfoPage(props) {
 			name: '',
 			wellKnownId: '',
 			description: '',
-			categoryId: '',
+			categoryId: 0,
 			isActive: true,
 			isRecommended: false,
 		},
@@ -100,7 +100,15 @@ export default function ProductInfoPage(props) {
 	});
 
 	const handleClickIconEdit = () => {
-		formik.setValues(product);
+		formik.setValues({
+			id: product.id,
+			name: product.name,
+			wellKnownId: product.wellKnownId,
+			description: product.description,
+			categoryId: product.category.id,
+			isActive: product.isActive,
+			isRecommended: product.isRecommended
+		});
 		setEditing((prev) => !prev);
 	};
 
@@ -109,7 +117,15 @@ export default function ProductInfoPage(props) {
 		if (status === 200 && data) {
 			setProduct(data);
 			setDetails(data.details);
-			formik.setValues(data);
+			formik.setValues({
+				id: data.id,
+				name: data.name,
+				wellKnownId: data.wellKnownId,
+				description: data.description,
+				categoryId: data.category.id,
+				isActive: data.isActive,
+				isRecommended: data.isRecommended
+			});
 		}
 	}, [id]);
 
@@ -411,11 +427,6 @@ export default function ProductInfoPage(props) {
 								</Fragment>
 							) : (
 								<Fragment>
-									{console.log(
-										categories.findIndex(
-											(category) => category.value === product.category.id
-										)
-									)}
 									<SelectableInput
 										id={'category'}
 										defaultValue={categories.find(
