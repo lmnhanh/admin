@@ -11,6 +11,7 @@ import {
 	faArrowRight,
 	faChartLine,
 	faCheck,
+	faClockRotateLeft,
 	faHome,
 	faPencil,
 	faPenToSquare,
@@ -107,7 +108,7 @@ export default function ProductInfoPage(props) {
 			description: product.description,
 			categoryId: product.category.id,
 			isActive: product.isActive,
-			isRecommended: product.isRecommended
+			isRecommended: product.isRecommended,
 		});
 		setEditing((prev) => !prev);
 	};
@@ -124,25 +125,25 @@ export default function ProductInfoPage(props) {
 				description: data.description,
 				categoryId: data.category.id,
 				isActive: data.isActive,
-				isRecommended: data.isRecommended
+				isRecommended: data.isRecommended,
 			});
 		}
 	}, [id]);
 
+	const fetchImages = useCallback(async () => {
+		const { status, data } = await axios.get(`/api/images?productId=${id}`);
+		if (status === 200 && data.length !== 0) {
+			setImages(
+				data.map((item) => ({
+					original: `https://localhost:7028/api/images/get/${item}`,
+					thumbnail: `https://localhost:7028/api/images/get/${item}`,
+				}))
+			);
+		}
+	},[id]);
+
 	useEffect(() => {
 		document.title = 'Thông tin sản phẩm';
-
-		const fetchImages = async () => {
-			const { status, data } = await axios.get(`/api/images?productId=${id}`);
-			if (status === 200 && data.length !== 0) {
-				setImages(
-					data.map((item) => ({
-						original: `https://localhost:7028/api/images/get/${item}`,
-						thumbnail: `https://localhost:7028/api/images/get/${item}`,
-					}))
-				);
-			}
-		};
 
 		const fetchListcategories = async () => {
 			const { status, data } = await axios.get(
@@ -170,7 +171,7 @@ export default function ProductInfoPage(props) {
 				dispatch(setAuthorized({ authorized: false }));
 			}
 		}
-	}, [id, dispatch, fetchProduct, editing]);
+	}, [id, dispatch, fetchProduct, fetchImages]);
 
 	const handleDelete = async (id) => {
 		try {
@@ -191,6 +192,7 @@ export default function ProductInfoPage(props) {
 
 	return product !== null && categories !== [] ? (
 		<Fragment>
+			
 			<BreadcrumbPath
 				items={[
 					{
@@ -250,6 +252,17 @@ export default function ProductInfoPage(props) {
 										icon={faPenToSquare}
 									/>
 									Chỉnh sửa thông tin
+								</Dropdown.Item>
+								<Dropdown.Item
+									className='w-full hover:text-blue-600 hover:bg-gradient-to-r hover:from-cyan-100 hover:to-gray-100'
+									onClick={() => {
+										navigate(`/product/${product.id}/prices`)
+									}}>
+									<FontAwesomeIcon
+										className='pr-1 w-4 h-4 text-yellow-300'
+										icon={faClockRotateLeft}
+									/>
+									Xem lịch sử giá
 								</Dropdown.Item>
 								<Dropdown.Item
 									className='w-full hover:text-blue-600 hover:bg-gradient-to-r hover:from-cyan-100 hover:to-gray-100'
@@ -462,7 +475,10 @@ export default function ProductInfoPage(props) {
 							<Button
 								size={'xs'}
 								gradientDuoTone={'pinkToOrange'}
-								onClick={handleClickIconEdit}>
+								onClick={() => {
+									setEditing(false);
+									fetchProduct();
+								}}>
 								<FontAwesomeIcon icon={faXmark} className={'mr-1'} />
 								Hủy
 							</Button>
@@ -480,8 +496,8 @@ export default function ProductInfoPage(props) {
 								<Table hoverable={true}>
 									<Table.Head>
 										<Table.HeadCell>Loại</Table.HeadCell>
-										<Table.HeadCell>Giá sỉ</Table.HeadCell>
 										<Table.HeadCell>Giá lẻ</Table.HeadCell>
+										<Table.HeadCell>Giá sỉ</Table.HeadCell>
 										<Table.HeadCell>Tồn</Table.HeadCell>
 										<Table.HeadCell>Trạng thái</Table.HeadCell>
 									</Table.Head>
@@ -538,9 +554,7 @@ export default function ProductInfoPage(props) {
 									/>
 									Trở về
 								</Button>
-								<Link
-									to={`/product/${id}/detail`}
-									className={'self-center'}>
+								<Link to={`/product/${id}/detail`} className={'self-center'}>
 									<Button size={'xs'} gradientDuoTone={'greenToBlue'}>
 										Thêm và chỉnh sửa chi tiết
 										<FontAwesomeIcon icon={faArrowRight} className={'ml-1'} />

@@ -94,10 +94,6 @@ export default function OrderListPage() {
 			des: 'Đã xử lí',
 		},
 		{
-			name: 'processing',
-			des: 'Đang đợi xử lí',
-		},
-		{
 			name: 'success',
 			des: 'Thành công',
 		},
@@ -109,10 +105,13 @@ export default function OrderListPage() {
 			name: 'anonymous',
 			des: 'Khách vãng lai',
 		},
+		{
+			name: 'processing',
+			des: 'Đang đợi xử lí',
+		},
 	];
 
 	const fetchOrders = useCallback(async () => {
-		console.log(`/api/orders?filter=${filter}&userName=${userName}&productId=${productName}&fromDate=${fromDate}&toDate=${toDate}&fromPrice=${fromPrice}&toPrice=${toPrice}&page=${pageNo}&size=${pageSize}&sort=${sort}&order=${order}`);
 		try {
 			const { data, status } = await axios.get(
 				`/api/orders?filter=${filter}&userName=${userName}&productId=${productName}&fromDate=${fromDate}&toDate=${toDate}&fromPrice=${fromPrice}&toPrice=${toPrice}&page=${pageNo}&size=${pageSize}&sort=${sort}&order=${order}`
@@ -246,7 +245,7 @@ export default function OrderListPage() {
 							</>
 						),
 					},
-					{ to: '/vender', text: 'Nhà cung cấp' },
+					{ to: '/order', text: 'Đơn bán hàng' },
 				]}
 			/>
 			{orders === null ? (
@@ -255,7 +254,7 @@ export default function OrderListPage() {
 				<div className='container relative min-w-max'>
 					<Card>
 						<div className='text-md font-bold items-center flex gap-2'>
-							<span className='min-w-fit mr-3'>Danh sách nhà cung cấp</span>
+							<span className='min-w-fit mr-3'>Danh sách đơn bán hàng</span>
 							{FilterOption.map(
 								(opt, index) =>
 									filter === opt.name && (
@@ -543,7 +542,6 @@ export default function OrderListPage() {
 										defaultValue={pageSize}
 										onChange={(e) => handleChangePagesize(e.target.value)}
 										className='w-fit h-fit mt-2 mr-5 bg-gray-50 border text-middle border-gray-300 text-gray-900 text-sm rounded-lg'>
-										<option value={5}>5 đơn</option>
 										<option value={10}>10 đơn</option>
 										<option value={25}>25 đơn</option>
 										<option value={50}>50 đơn</option>

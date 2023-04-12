@@ -41,7 +41,7 @@ export default function NewProductDetail() {
 			toWholesale: 1000,
 			retailPrice: 1000,
 			wholePrice: 1000,
-			isActive: true,
+			isAvailable: true,
 		},
 		validationSchema: yup.object({
 			unit: yup
@@ -116,6 +116,7 @@ export default function NewProductDetail() {
 			success: (response) => {
 				fetchDetails();
 				formik.resetForm();
+				setEditing(false);
 				return <div>Đã xóa chi tiết {response.data.description}</div>;
 			},
 			error: (error) => {
@@ -141,6 +142,7 @@ export default function NewProductDetail() {
 
 	const handleDetailClicked = (detail) => {
 		setEditing(true);
+		formik.resetForm();
 		formik.setValues({
 			id: detail.id,
 			productId: detail.productId,
@@ -150,7 +152,7 @@ export default function NewProductDetail() {
 			toWholesale: detail.toWholesale,
 			retailPrice: detail.retailPrice,
 			wholePrice: detail.wholePrice,
-			isActive: detail.isAvailable,
+			isAvailable: detail.isAvailable,
 		});
 	};
 
@@ -320,12 +322,12 @@ export default function NewProductDetail() {
 						</div>
 						<div className='flex gap-2 ml-2 mt-0 lg:mt-5 items-center'>
 							<Checkbox
-								name='isActive'
-								id='isActive'
-								checked={formik.values.isActive}
+								name='isAvailable'
+								id='isAvailable'
+								checked={formik.values.isAvailable}
 								onChange={formik.handleChange}
 							/>
-							<Label htmlFor='isActive' className='cursor-pointer'>
+							<Label htmlFor='isAvailable' className='cursor-pointer'>
 								Đang kinh doanh
 							</Label>
 						</div>

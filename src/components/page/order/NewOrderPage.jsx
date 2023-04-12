@@ -1,4 +1,4 @@
-import { Card, Label, Button, Table, Badge } from 'flowbite-react';
+import { Card, Label, Button, Table, Badge, Textarea } from 'flowbite-react';
 import { useFormik } from 'formik';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -9,54 +9,59 @@ import {
 	faArrowLeft,
 } from '@fortawesome/free-solid-svg-icons';
 import * as yup from 'yup';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { Fragment, useEffect, useState } from 'react';
 import { FormatCurrency } from '../../../libs/helper';
 import ToastPromise from '../../util/ToastPromise';
 import BreadcrumbPath from '../../util/BreadCrumbPath';
 import SelectableInput from '../../util/SelectableInput';
-import useQuery from '../../util/useQuery';
-
 export default function NewOrderPage() {
-	const query = useQuery();
-	const [venders, setVenders] = useState([]);
+	const [customers, setCustomers] = useState([]);
 	const [products, setProducts] = useState([]);
 	const [details, setDetails] = useState([]);
 	const [orderDetails, setOrderDetails] = useState([]);
 	const [detailStep, setDetailStep] = useState(false);
-	const [venderStep, setVenderStep] = useState(true);
-	const [confirmStep, setConfirmStep] = useState(!venderStep);
+	const [userStep, setUserStep] = useState(true);
+	const [confirmStep, setConfirmStep] = useState(!userStep);
+	const navigate = useNavigate();
 
 	const formik = useFormik({
 		initialValues: {
-			venderId: query.get('vender') ?? '',
-			orderDetails: [],
+			description: '',
+			userId: '',
+			total: 0,
+			carts: [],
+
 			details: [],
-			quantity: 1,
-			realTotal: 1,
 			productDetailId: 0,
+			quantity: 1,
 		},
 		validationSchema: yup.object({
 			quantity: yup
 				.number()
-				.min(1, 'Số lượng nhập không hợp lệ!')
-				.required('Số lượng không được trống!'),
+				.min(1, 'Số lượng bán không hợp lệ!')
+				.required('Số lượng bán không được trống!'),
+			description: yup
+				.string()
+				.required('Chú thích đơn hàng không được trống!'),
 		}),
 		onSubmit: (values) => {
 			ToastPromise(
 				axios.post('/api/orders/', {
-					venderId: formik.values.venderId,
-					orderDetails: formik.values.orderDetails,
-					realTotal: formik.values.realTotal,
+					description: formik.values.description,
+					userId: formik.values.userId,
+					total: formik.values.total,
+					carts: formik.values.carts,
 				}),
 				{
 					pending: 'Đang thêm đơn bán hàng',
 					success: (response) => {
+						navigate(`/order/${response.data.id}`);
 						return (
 							<div>
 								Đã thêm đơn bán hàng
-								<Link to={`/order/${response.data.id}`}>
+								<Link to={`/order/${response.data.id}`} replace={true}>
 									<Badge size={'xs'} className='w-fit' color={'info'}>
 										Xem chi tiết
 									</Badge>
@@ -75,12 +80,12 @@ export default function NewOrderPage() {
 	const handleProductChange = async (productId) => {
 		formik.values.productDetailId = null;
 		const { data, status } = await axios.get(
-			`/api/productdetails?productId=${productId}`
+			`/api/productdetails?productId=${productId}&isInStock=true`
 		);
 		if (status === 200) {
 			formik.values.details = data.map((item) => ({
 				value: item.id,
-				label: `${item.unit} (${FormatCurrency(item.importPrice)})`,
+				label: `${item.unit} (${FormatCurrency(item.wholePrice)})`,
 			}));
 			formik.values.productDetailId = data[0]?.id;
 			setDetails(data);
@@ -92,63 +97,75 @@ export default function NewOrderPage() {
 	};
 
 	const handleAddButtonClick = () => {
-		let detail = details.find(
-			(detail) => detail.id === Number.parseInt(formik.values.productDetailId)
+		var existedCart = orderDetails.findIndex(
+			(cart) => cart.productDetailId === Number(formik.values.productDetailId)
 		);
-		var existDetailIndex = orderDetails.findIndex(
-			(detail) =>
-				detail.productDetailId ===
-				Number.parseInt(formik.values.productDetailId)
+		var detail = details.find(
+			(detail) => detail.id === Number(formik.values.productDetailId)
 		);
-		if (existDetailIndex === -1) {
+		if (existedCart === -1) {
 			setOrderDetails((prev) => [
 				...prev,
 				{
-					productDetailId: Number.parseInt(formik.values.productDetailId),
+					productDetailId: Number(formik.values.productDetailId),
 					productDetail: detail.unit,
-					importPrice: detail.importPrice,
+					wholePrice: detail.wholePrice,
 					quantity: formik.values.quantity,
 				},
 			]);
 		} else {
 			setOrderDetails((prev) => {
-				prev[existDetailIndex].quantity = formik.values.quantity;
+				prev[existedCart].quantity = formik.values.quantity;
 				return [...prev];
 			});
 		}
 	};
 
+	const handleCalculateTotal = () => {
+		formik.values.total = orderDetails.reduce((total, detail) => {
+			return total + detail.wholePrice * detail.quantity;
+		}, 0);
+		formik.values.carts = orderDetails.map((detail) => ({
+			userId: formik.values.userId,
+			productDetailId: detail.productDetailId,
+			quantity: detail.quantity,
+		}));
+	};
+
 	useEffect(() => {
-		const vender = query.get('vender');
-		const fetchVenders = async () => {
-			const { data, status } = await axios.get(`/api/venders?page=0`);
-			if (status === 200 && data.venders.length !== 0) {
-				setVenders(
-					data.venders.map((item) => ({
+		const fetchCustomers = async () => {
+			const { data, status } = await axios.get(`/api/users?role=Customer`);
+			if (status === 200 && data.length !== 0) {
+				setCustomers(
+					data.map((item) => ({
 						value: item.id,
-						label: item.name,
+						label: item.fullName,
 					}))
 				);
-				formik.values.venderId = vender ?? data.venders[0].id;
+				formik.values.userId = data[0].id;
 			}
 		};
 
 		const fetchProducts = async () => {
 			const { data, status } = await axios.get(`/api/products?page=0`);
 			if (status === 200) {
-				setProducts(
-					data.products.map((item) => ({
+				setProducts([
+					{
+						value: 0,
+						label: 'Chọn sản phẩm',
+					},
+					...data.products.map((item) => ({
 						value: item.id,
 						label: item.name,
-					}))
-				);
+					})),
+				]);
 			}
 		};
 
-		fetchVenders();
+		fetchCustomers();
 		fetchProducts();
 		document.title = 'Thêm đơn bán hàng';
-	}, [formik.values]);
+	}, []);
 
 	return (
 		<Fragment>
@@ -167,28 +184,26 @@ export default function NewOrderPage() {
 				]}
 			/>
 			<Card className='relative'>
-				{venderStep && (
+				{userStep && (
 					<div className='flex flex-col items-center gap-y-2'>
 						<div className='w-full md:w-1/2'>
-							<Label htmlFor='venderId'>Chọn nhà cung cấp sản phẩm:</Label>
+							<Label htmlFor='userId'>Chọn đối tác bán hàng:</Label>
 							<SelectableInput
-								id={'venderId'}
-								defaultValue={venders.find(
-									(v) => v.value === formik.values.venderId
-								)}
+								id={'userId'}
+								defaultValue={customers[0]}
 								isSearchable={true}
 								onChange={(selected) => {
-									formik.values.venderId = selected.value;
+									formik.values.userId = selected.value;
 								}}
-								options={venders}
+								options={customers}
 							/>
 						</div>
 						<Button
 							size={'xs'}
 							gradientDuoTone={'greenToBlue'}
-							disabled={formik.values.venderId === ''}
+							disabled={formik.values.userId === ''}
 							onClick={() => {
-								setVenderStep(false);
+								setUserStep(false);
 								setDetailStep(true);
 							}}>
 							Tiếp tục
@@ -199,13 +214,14 @@ export default function NewOrderPage() {
 				{(detailStep || confirmStep) && (
 					<Fragment>
 						<div className='text-md font-semibold'>{`Đơn nhập từ: ${
-							venders.find((vender) => vender.value === formik.values.venderId)
-								.label
+							customers.find(
+								(customer) => customer.value === formik.values.userId
+							).label
 						}`}</div>
 						<Table hoverable={true}>
 							<Table.Head>
 								<Table.HeadCell>Loại, phẩm cách</Table.HeadCell>
-								<Table.HeadCell>Giá nhập (đồng/kg)</Table.HeadCell>
+								<Table.HeadCell>Giá sỉ (đồng/kg)</Table.HeadCell>
 								<Table.HeadCell>{`Số lượng (kg)`}</Table.HeadCell>
 							</Table.Head>
 							<Table.Body className='divide-y'>
@@ -215,11 +231,12 @@ export default function NewOrderPage() {
 										onClick={() => {
 											orderDetails.splice(index, 1);
 											setOrderDetails([...orderDetails]);
+											handleCalculateTotal();
 										}}
 										className='bg-white mx-1 cursor-pointer hover:bg-gradient-to-r hover:from-blue-100 hover:to-gray-100'
 										key={index}>
 										<Table.Cell>{item.productDetail}</Table.Cell>
-										<Table.Cell>{FormatCurrency(item.importPrice)}</Table.Cell>
+										<Table.Cell>{FormatCurrency(item.wholePrice)}</Table.Cell>
 										<Table.Cell>{item.quantity} kg</Table.Cell>
 									</Table.Row>
 								))}
@@ -268,7 +285,7 @@ export default function NewOrderPage() {
 								</select>
 							</div>
 							<div>
-								<Label htmlFor='quantity'>Số lượng nhập:</Label>
+								<Label htmlFor='quantity'>Số lượng bán:</Label>
 								<input
 									id={'quantity'}
 									title={'Đơn vị: kg'}
@@ -305,14 +322,16 @@ export default function NewOrderPage() {
 								disabled={orderDetails.length === 0}
 								onClick={() => {
 									setDetailStep(false);
-									setVenderStep(true);
+									setUserStep(true);
 								}}>
 								<FontAwesomeIcon icon={faArrowLeft} className={'mr-1'} />
-								Chọn nhà cung cấp
+								Chọn đối tác
 							</Button>
 							<Button
 								size={'xs'}
-								disabled={!formik.values.productDetailId}
+								disabled={
+									!formik.values.productDetailId || formik.errors.quantity
+								}
 								gradientDuoTone={'greenToBlue'}
 								onClick={handleAddButtonClick}>
 								<FontAwesomeIcon icon={faPlus} className={'mr-1'} />
@@ -323,22 +342,11 @@ export default function NewOrderPage() {
 								gradientDuoTone={'greenToBlue'}
 								disabled={orderDetails.length === 0}
 								onClick={() => {
-									formik.values.realTotal = orderDetails.reduce(
-										(total, detail) => {
-											return total + detail.importPrice * detail.quantity;
-										},
-										0
-									);
-									formik.values.orderDetails = orderDetails.map(
-										(detail) => ({
-											productDetailId: detail.productDetailId,
-											quantity: detail.quantity,
-										})
-									);
+									handleCalculateTotal();
 									setDetailStep(false);
 									setConfirmStep(true);
 								}}>
-								Xác nhận đơn nhập
+								Xác nhận tạo đơn hàng
 								<FontAwesomeIcon icon={faArrowRight} className={'ml-1'} />
 							</Button>
 						</div>
@@ -348,32 +356,55 @@ export default function NewOrderPage() {
 				{confirmStep && (
 					<Fragment>
 						<div className='flex flex-col items-center gap-2'>
+							<div className='grid w-full grid-cols-2'>
+								<Textarea
+									name='description'
+									onChange={formik.handleChange}
+									maxLength={500}
+									shadow={true}
+									rows={3}
+									className='text-sm col-span-2'
+									placeholder='Chú thích đơn hàng'
+								/>
+								{formik.errors.description && (
+									<div className='bottom-0 text-red-500 text-sm'>
+										<FontAwesomeIcon icon={faWarning} className='px-1' />
+										{formik.errors.description}
+									</div>
+								)}
+								<div className='place-self-end text-sm font-light'>
+									{formik.values.description.length}/500
+								</div>
+							</div>
+
 							<div className='flex w-full items-center gap-x-2'>
-								<Label htmlFor='realTotal' className='w-fit'>
-									Tống giá trị đơn nhập:
+								<Label htmlFor='total' className='w-fit'>
+									Tống giá trị đơn hàng:
 								</Label>
+
 								<input
-									id={'realTotal'}
-									name={'realTotal'}
+									id={'total'}
+									name={'total'}
 									sizing={'md'}
 									min={1}
 									type={'number'}
-									value={formik.values.realTotal}
+									value={formik.values.total}
 									onChange={formik.handleChange}
 									className={
 										'bg-white w-fit h-fit rounded-md border border-gray-300 text-sm text-gray-500 focus:ring-blue-100 focus:ring-2'
 									}
 									placeholder={'Tổng giá trị'}
 								/>
-								<div>{FormatCurrency(formik.values.realTotal)}</div>
+								<div>{FormatCurrency(formik.values.total)}</div>
 							</div>
 							<Button
 								size={'xs'}
 								gradientDuoTone={'greenToBlue'}
+								disabled={formik.errors.description}
 								onClick={formik.handleSubmit}
 								className={'w-fit self-center'}>
 								<FontAwesomeIcon icon={faPlus} className={'mr-1'} />
-								Xác nhận thêm đơn nhập
+								Xác nhận tạo đơn hàng
 							</Button>
 						</div>
 						<Button
@@ -385,7 +416,7 @@ export default function NewOrderPage() {
 								setConfirmStep(false);
 							}}>
 							<FontAwesomeIcon icon={faArrowLeft} className={'mr-1'} />
-							Chỉnh sửa đơn nhập
+							Chỉnh sửa đơn hàng
 						</Button>
 					</Fragment>
 				)}

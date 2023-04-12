@@ -7,7 +7,7 @@ export const invoiceSlice = createSlice({
 		productName: '0',
 		fromPrice: -1,
 		toPrice: -1,
-		fromDate: new Date().toISOString(),
+		fromDate: "",
 		toDate: new Date().toISOString(),
 		sort: 'datecreate',
 		order: 'desc',

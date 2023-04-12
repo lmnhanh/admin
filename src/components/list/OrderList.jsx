@@ -50,26 +50,26 @@ export default function OrderList({ data, offset, highlightText }) {
 								<Badge color={'info'} className={'w-fit'}>{FormatCurrency(item.total)}</Badge>
 							</Table.Cell>
 							<Table.Cell>
-								{!item.isProccesed && !item.isSuccess && (
+								{!item.isProcessed && !item.isSuccess && (
 									<Badge color={'warning'} className={'w-fit min-w-fit'}>
 										<FontAwesomeIcon icon={faClock} className={'mr-1'} />
 										Đang chờ xử lí
 									</Badge>
 								)}
-								{item.isProccesed && !item.isSuccess && (
+								{item.isProcessed && !item.isSuccess && (
 									<Badge color={'info'} className={'w-fit min-w-fit'}>
 										<FontAwesomeIcon icon={faUserCheck} className={'mr-1'} />
 										Đã xử lí
 									</Badge>
 								)}
 
-								{item.isSuccess && item.isProccesed && (
+								{item.isSuccess && item.isProcessed && (
 									<Badge color={'success'} className={'w-fit min-w-fit'}>
 										<FontAwesomeIcon icon={faCheck} className={'mr-1'} />
 										Thành công
 									</Badge>
 								)}
-								{!item.isProccesed && item.isSuccess && (
+								{!item.isProcessed && item.isSuccess && (
 									<Badge color={'failure'} className={'w-fit min-w-fit'}>
 										<FontAwesomeIcon icon={faXmark} className={'mr-1'} />
 										Thất bại

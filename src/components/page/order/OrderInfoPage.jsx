@@ -10,22 +10,18 @@ import {
 	faArrowLeft,
 	faCheck,
 	faCheckToSlot,
-	faClock,
-	faDollar,
-	faHome,
+	faClock, faHome,
 	faUserCheck,
 	faWarning,
-	faXmark,
+	faXmark
 } from '@fortawesome/free-solid-svg-icons';
 import {
 	Badge,
 	Button,
 	Card,
 	Modal,
-	Table,
-	Label,
-	TextInput,
-	Textarea,
+	Table, TextInput,
+	Textarea
 } from 'flowbite-react';
 import 'react-image-gallery/styles/css/image-gallery.css';
 import '../product/imageGallery.css';
@@ -35,7 +31,7 @@ import * as yup from 'yup';
 import FilterBadge from '../../util/FilterBadge';
 import { FormatCurrency, ParseToDate } from '../../../libs/helper';
 
-export default function OrderInfoPage(props) {
+export default function OrderInfoPage() {
 	const { id } = useParams();
 	const [order, setOrder] = useState(null);
 	const [processing, setProcessing] = useState(false);
@@ -55,7 +51,7 @@ export default function OrderInfoPage(props) {
 			price: 0,
 			quantity: 1,
 			productDetailId: 0,
-			realQuantity: 1,
+			realQuantity: 0,
 		},
 		validationSchema: yup.object({
 			description: yup
@@ -68,14 +64,14 @@ export default function OrderInfoPage(props) {
 				.required('Số lượng giao không được trống'),
 		}),
 		onSubmit: (values) => {
-			console.log(values);
 			ToastPromise(axios.put(`/api/orders/${id}`, values), {
 				pending: 'Đang lưu thông tin đơn hàng',
-				success: (response) => {
+				success: () => {
 					fetchOrder();
+					setProcessing(false);
 					return <div>Đã lưu thông tin đơn hàng</div>;
 				},
-				error: (error) => {
+				error: () => {
 					return 'Lỗi! Không thể lưu thông tin đơn hàng!';
 				},
 			});
@@ -84,7 +80,7 @@ export default function OrderInfoPage(props) {
 
 	const handleToggleModal = () => {
 		setShowModal((prev) => !prev);
-		formik.setErrors({realQuantity: undefined})
+		formik.setErrors({ realQuantity: undefined });
 	};
 
 	const fetchOrder = useCallback(async () => {
@@ -92,6 +88,7 @@ export default function OrderInfoPage(props) {
 		if (status === 200 && data) {
 			setOrder(data);
 			formik.values.description = data.description;
+			formik.values.userId = data.user?.id ?? null;
 			formik.values.carts = data.carts.map((detail) => ({
 				userId: detail.user?.id ?? null,
 				toWholesale: detail.productDetail.toWholesale,
@@ -122,6 +119,23 @@ export default function OrderInfoPage(props) {
 		formik.values.productDetailId = cart.productDetailId;
 		formik.values.quantity = cart.quantity;
 		formik.values.realQuantity = cart.quantity;
+	};
+
+	const handleSetStatusOrder = async (orderStatus) => {
+		ToastPromise(axios.post(`/api/orders/${id}?success=${orderStatus}`), {
+			pending: 'Đang lưu cập nhật trạng tháng đơn hàng',
+			success: () => {
+				fetchOrder();
+				return (
+					<div>
+						Đã cập nhật trạng thái đơn hàng
+					</div>
+				);
+			},
+			error: () => {
+				return 'Lỗi! Không thể cập nhật trạng thái đơn hàng!';
+			},
+		});
 	};
 
 	useEffect(() => {
@@ -194,16 +208,17 @@ export default function OrderInfoPage(props) {
 						<span className='grow flex gap-x-2 items-center'>
 							Đơn giá bán:{' '}
 							<span className='font-semibold'>
-								{FormatCurrency(selectedCart?.userId === null
-						? formik.values.realQuantity >= selectedCart?.toWholesale
-							? selectedCart?.wholePrice
-							: selectedCart?.retailPrice
-						: selectedCart?.wholePrice,)}
+								{FormatCurrency(
+									selectedCart?.user === null
+										? formik.values.realQuantity >= selectedCart?.toWholesale
+											? selectedCart?.wholePrice
+											: selectedCart?.retailPrice
+										: selectedCart?.wholePrice
+								)}
 							</span>
 							<Badge size={'xs'} color={'success'} className={'w-fit'}>
 								{selectedCart?.user === null
-									? formik.values.realQuantity >=
-									  selectedCart?.toWholesale
+									? formik.values.realQuantity >= selectedCart?.toWholesale
 										? 'Giá sỉ'
 										: 'Giá lẻ'
 									: 'Giá sỉ'}
@@ -224,12 +239,16 @@ export default function OrderInfoPage(props) {
 						gradientDuoTone={'cyanToBlue'}
 						onClick={() => {
 							formik.values.carts.splice(
-								formik.values.carts.findIndex((cart) => cart.id === formik.cartId),
+								formik.values.carts.findIndex(
+									(cart) => cart.id === formik.cartId
+								),
 								1,
 								{
 									unit: selectedCart.unit,
 									productName: selectedCart.productName,
 									price: selectedCart.price,
+									retailPrice: selectedCart.retailPrice,
+									wholePrice: selectedCart.wholePrice,
 									quantity: selectedCart.quantity,
 									id: selectedCart.id,
 									productDetailId: formik.values.productDetailId,
@@ -245,7 +264,7 @@ export default function OrderInfoPage(props) {
 			</Modal>
 			<div className='container min-w-max'>
 				<Card className='relative'>
-					{!order.isProccesed &&
+					{!order.isProcessed &&
 						!order.isSuccess &&
 						(!processing ? (
 							<Button
@@ -266,16 +285,34 @@ export default function OrderInfoPage(props) {
 								Xác nhận đã xử lí đơn hàng
 							</Button>
 						))}
+					{order.isProcessed && !order.isSuccess && (
+						<div className='absolute top-3 right-3 flex gap-x-1'>
+							<Button
+								size={'xs'}
+								onClick={() => handleSetStatusOrder(false)}
+								gradientMonochrome={'failure'}>
+								<FontAwesomeIcon icon={faXmark} className={'mr-1'} />
+								Đơn hàng thất bại
+							</Button>
+							<Button
+								size={'xs'}
+								onClick={() => handleSetStatusOrder(true)}
+								gradientMonochrome={'success'}>
+								<FontAwesomeIcon icon={faCheckToSlot} className={'mr-1'} />
+								Đơn hàng thành công
+							</Button>
+						</div>
+					)}
 					<div className='flex gap-x-1 items-center'>
 						<Fragment>
-							{!order.isProccesed && !order.isSuccess && (
+							{!order.isProcessed && !order.isSuccess && (
 								<FilterBadge
 									color={'warning'}
 									label='Đang chờ xử lí'
 									icon={faClock}
 								/>
 							)}
-							{order.isProccesed && !order.isSuccess && (
+							{order.isProcessed && !order.isSuccess && (
 								<FilterBadge
 									color={'info'}
 									label='Đã xử lí'
@@ -283,14 +320,14 @@ export default function OrderInfoPage(props) {
 								/>
 							)}
 
-							{order.isSuccess && order.isProccesed && (
+							{order.isSuccess && order.isProcessed && (
 								<FilterBadge
 									color={'success'}
-									label='Thành công'
+									label={`Thành công: ${ParseToDate(order.dateSuccess)}`}
 									icon={faCheck}
 								/>
 							)}
-							{!order.isProccesed && order.isSuccess && (
+							{!order.isProcessed && order.isSuccess && (
 								<FilterBadge
 									color={'failure'}
 									label='Thất bại'
@@ -302,9 +339,9 @@ export default function OrderInfoPage(props) {
 								icon={faClock}
 								color={'info'}
 							/>
-							{order.dateProccesed && (
+							{order.dateProcessed && (
 								<FilterBadge
-									label={`Xử lí: ${ParseToDate(order.dateProccesed)}`}
+									label={`Xử lí: ${ParseToDate(order.dateProcessed)}`}
 									icon={faClock}
 									color={'purple'}
 								/>
@@ -336,6 +373,8 @@ export default function OrderInfoPage(props) {
 							<Fragment>
 								<Textarea
 									rows={4}
+									name='description'
+									maxLength={500}
 									value={formik.values.description}
 									onChange={formik.handleChange}
 									className={'col-span-2'}
@@ -347,6 +386,9 @@ export default function OrderInfoPage(props) {
 										{formik.errors.description}
 									</span>
 								)}
+								<span className='text-sm font-light place-self-end'>
+									{formik.values.description.length}/500
+								</span>
 							</Fragment>
 						)}
 					</div>
@@ -363,7 +405,7 @@ export default function OrderInfoPage(props) {
 							{formik.values.carts.map((item, index) => (
 								<Table.Row
 									onClick={
-										!order.dateProccesed
+										!order.dateProcessed
 											? () => {
 													handleRowClick(item);
 											  }

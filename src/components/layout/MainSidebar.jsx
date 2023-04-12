@@ -4,13 +4,15 @@ import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-	faHome,
+	faChartColumn,
+	faGift, faHome,
 	faPeopleArrows,
 	faReceipt,
 	faShrimp,
 	faTags,
 	faTruckArrowRight,
-	faWarehouse,
+	faUserFriends,
+	faWarehouse
 } from '@fortawesome/free-solid-svg-icons';
 import { faRightToBracket } from '@fortawesome/free-solid-svg-icons';
 
@@ -64,11 +66,18 @@ export default function MainSidebar(props) {
 						Hóa đơn nhập
 					</Sidebar.Item>
 					<Sidebar.Item
-						icon={() => <FontAwesomeIcon icon={faTags} />}
+						icon={() => <FontAwesomeIcon icon={faGift} />}
 						as={Link}
-						to={'/category'}
-						className={pathname.includes('/category') ? activeClassName : ''}>
-						Loại sản phẩm
+						to={'/promotion'}
+						className={pathname.includes('/promotion') ? activeClassName : ''}>
+						Khuyến mãi
+					</Sidebar.Item>
+					<Sidebar.Item
+						icon={() => <FontAwesomeIcon icon={faUserFriends} className={'w-4 h-4'} />}
+						as={Link}
+						to={'/trading_partner'}
+						className={pathname.includes('/trading_partner') ? activeClassName : ''}>
+						Đối tác bán hàng
 					</Sidebar.Item>
 					<Sidebar.Item
 						icon={() => <FontAwesomeIcon icon={faPeopleArrows} className={'w-4 h-4'} />}
@@ -77,7 +86,20 @@ export default function MainSidebar(props) {
 						className={pathname.includes('/vender') ? activeClassName : ''}>
 						Nhà cung cấp
 					</Sidebar.Item>
-
+					<Sidebar.Item
+						icon={() => <FontAwesomeIcon icon={faChartColumn} className={'w-4 h-4'} />}
+						as={Link}
+						to={'/statistic'}
+						className={pathname.includes('/statistic') ? activeClassName : ''}>
+						Thống kê
+					</Sidebar.Item>
+					<Sidebar.Item
+						icon={() => <FontAwesomeIcon icon={faTags} />}
+						as={Link}
+						to={'/category'}
+						className={pathname.includes('/category') ? activeClassName : ''}>
+						Loại sản phẩm
+					</Sidebar.Item>
 					<Sidebar.Item
 						icon={() => <FontAwesomeIcon icon={faRightToBracket} />}
 						as={Link}

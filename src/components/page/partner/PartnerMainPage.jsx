@@ -1,38 +1,37 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Button, Modal, Label, TextInput, Textarea } from 'flowbite-react';
-import { Fragment, useState } from 'react';
-import { Link, Outlet, useNavigate } from 'react-router-dom';
 import {
 	faBars,
 	faChartLine,
 	faPlus,
 	faWarning,
 } from '@fortawesome/free-solid-svg-icons';
-import { useDispatch } from 'react-redux';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import axios from 'axios';
+import { Button, Card, Modal, TextInput } from 'flowbite-react';
 import { useFormik } from 'formik';
+import { Fragment, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { Link, Outlet, useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
 import ToastPromise from '../../util/ToastPromise';
-import axios from 'axios';
-import { setPageNo } from '../../../libs/store/venderSlice';
-import {setAuthorized} from '../../../libs/store/slices'
+import { setAuthorized } from '../../../libs/store/slices';
+import { setPageNo } from '../../../libs/store/partnerSlice';
 
-export default function VenderMainPage(props) {
+export default function PartnerMainPage() {
 	const [showAddModal, setShowAddModal] = useState(false);
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
 	const formik = useFormik({
 		initialValues: {
-			name: '',
+			fullName: '',
 			phoneNumber: '',
 			email: '',
-			company: '',
-			description: '',
+			password: 'X2Uqxe&3k@',
 		},
 		validationSchema: yup.object({
-			name: yup
+			fullName: yup
 				.string()
 				.max(50, 'Tối đa 50 kí tự')
-				.required('Tên nhà cung cấp không được trống!'),
+				.required('Tên nhà đối tác không được trống!'),
 			phoneNumber: yup
 				.string()
 				.max(20, 'Tối đa 20 kí tự!')
@@ -41,27 +40,27 @@ export default function VenderMainPage(props) {
 				.string()
 				.email('Email không hợp lệ')
 				.max(50, 'Tối đa 50 kí tự!')
-				.required('Email không được trống!'),
-			company: yup.string().max(50, 'Tối đa 50 kí tự!'),
-			description: yup.string().max(200, 'Tối đa 200 kí tự!'),
+				.required('Email không được trống'),
 		}),
 		onSubmit: async (values) => {
-			try {
-				ToastPromise(axios.post('/api/venders', values), {
-					pending: 'Đang thêm nhà cung cấp',
-					success: (response) => {
-						setShowAddModal(false);
-						dispatch(setPageNo(99999));
-						return `Đã thêm ${values.name}`;
-					},
-					error: (error) => {
-						return 'Lỗi! Không thể thêm nhà cung cấp!';
-					},
-				});
-			} catch (error) {
-				(error.response.status === 401 || error.response.status === 403) &&
-					dispatch(setAuthorized(false));
-			}
+			ToastPromise(axios.post('/api/authenticate/register', values), {
+				pending: 'Đang thêm đối tác bán hàng',
+				success: (response) => {
+					setShowAddModal(false);
+					dispatch(setPageNo(99999));
+					return `Đã thêm ${values.fullName}`;
+				},
+				error: (error) => {
+					(error.response.status === 401 || error.response.status === 403) &&
+						dispatch(setAuthorized(false));
+					if (error.response.status === 400)
+						formik.setErrors({
+							email: error.response.data.email ?? undefined,
+							phoneNumber: error.response.data.phoneNumber ?? undefined,
+						});
+					return 'Lỗi! Không thể thêm đối tác!';
+				},
+			});
 		},
 	});
 
@@ -69,38 +68,41 @@ export default function VenderMainPage(props) {
 		formik.resetForm();
 		setShowAddModal((prev) => !prev);
 	};
-
 	return (
 		<Fragment>
 			<Modal
 				show={showAddModal}
-				onKeyDown={(event)=>{
+				onKeyDown={(event) => {
 					event.key === 'Enter' && formik.handleSubmit();
 				}}
 				dismissible={true}
 				size={'xxl'}
 				onClose={handleToggleAddModal}>
-				<Modal.Header>Thêm nhà cung cấp</Modal.Header>
+				<Modal.Header>Thêm đối tác bán hàng</Modal.Header>
 				<Modal.Body className='flex flex-col'>
 					<div className={`grid grid-cols-3 gap-x-2`}>
 						<div className='items-center'>
-							<span className='font-semibold'>Nhà cung cấp: </span>
+							<span className='font-semibold'>
+								Tên đối tác <span className='text-red-600'>*</span>
+							</span>
 							<TextInput
 								sizing={'md'}
 								type={'text'}
 								maxLength={'50'}
-								id={'name'}
-								name={'name'}
+								id={'fullName'}
+								name={'fullName'}
 								onChange={formik.handleChange}
-								value={formik.values.name}
-								placeholder={'Cơ sở hải sản Tư Hải'}
-								color={formik.touched.name && formik.errors.name && 'failure'}
+								value={formik.values.fullName}
+								placeholder={'Lê Minh An'}
+								color={
+									formik.touched.fullName && formik.errors.fullName && 'failure'
+								}
 								helperText={
 									<span>
-										{formik.touched.name && formik.errors.name && (
+										{formik.touched.fullName && formik.errors.fullName && (
 											<span>
 												<FontAwesomeIcon icon={faWarning} className='px-1' />
-												{formik.errors.name}
+												{formik.errors.fullName}
 											</span>
 										)}
 									</span>
@@ -108,7 +110,9 @@ export default function VenderMainPage(props) {
 							/>
 						</div>
 						<div className='items-center'>
-							<span className='font-semibold'>Số điện thoại: </span>
+							<span className='font-semibold'>
+								Số điện thoại <span className='text-red-600'>*</span>
+							</span>
 							<TextInput
 								sizing={'md'}
 								type={'text'}
@@ -137,7 +141,9 @@ export default function VenderMainPage(props) {
 							/>
 						</div>
 						<div className='items-center'>
-							<span className='font-semibold'>Email: </span>
+							<span className='font-semibold'>
+								Email <span className='text-red-600'>*</span>
+							</span>
 							<TextInput
 								sizing={'md'}
 								type={'email'}
@@ -160,63 +166,21 @@ export default function VenderMainPage(props) {
 								}
 							/>
 						</div>
-						<div className='items-center'>
-							<span className='font-semibold'>Doanh nghiệp: </span>
-							<TextInput
-								sizing={'md'}
-								type={'text'}
-								maxLength={'50'}
-								id={'company'}
-								name={'company'}
-								onChange={formik.handleChange}
-								value={formik.values.company}
-								placeholder={'Danh nghiệp tư nhân 3 Đạt'}
-								color={
-									formik.touched.company && formik.errors.company && 'failure'
-								}
-								helperText={
-									<span>
-										{formik.touched.company && formik.errors.company && (
-											<span>
-												<FontAwesomeIcon icon={faWarning} className='px-1' />
-												{formik.errors.company}
-											</span>
-										)}
-									</span>
-								}
-							/>
+					</div>
+					<span className='font-semibold text-sm text-red-500'>
+						<FontAwesomeIcon className='text-red-500 mr-1' icon={faWarning} />
+						Lưu ý:
+					</span>
+					<div className='items-center  text-red-500 text-sm pl-5'>
+						<div>
+							Email của đối tác cần được đối tác xác nhận trước khi có thể đăng
+							nhập và tạo đơn hàng.
 						</div>
-						<div className='items-center col-span-2'>
-							<span className='font-semibold'>Mô tả bổ sung: </span>
-							<Textarea
-								className='text-sm'
-								rows={'3'}
-								maxLength={'200'}
-								sizing={'md'}
-								type={'text'}
-								id={'description'}
-								name={'description'}
-								onChange={formik.handleChange}
-								value={formik.values.description}
-								placeholder={'Vựa hải sản chính tại Gành Hào, Bạc Liêu, ...'}
-								color={
-									formik.touched.description &&
-									formik.errors.description &&
-									'failure'
-								}
-								helperText={
-									<span>
-										{formik.touched.description &&
-											formik.errors.description && (
-												<span>
-													<FontAwesomeIcon icon={faWarning} className='px-1' />
-													{formik.errors.description}
-												</span>
-											)}
-									</span>
-								}
-							/>
+						<div>
+							Mật khẩu mặc định để đăng nhập:{' '}
+							<span className='text-black font-semibold'>X2Uqxe&3k@</span>
 						</div>
+						<div>Đối tác sẽ phải đổi mật khẩu sau lần đăng nhập đầu tiên.</div>
 					</div>
 					<Button
 						size={'sm'}
@@ -228,16 +192,16 @@ export default function VenderMainPage(props) {
 				</Modal.Body>
 			</Modal>
 			<div className='flex gap-2'>
-				<Link to={'/vender'}>
+				<Link to={'/trading_partner'}>
 					<Button
 						className='h-8 rounded-lg text-center min-w-max'
 						size={'xs'}
 						gradientDuoTone={'cyanToBlue'}>
 						<FontAwesomeIcon icon={faBars} className='pr-2 w-4 h-4' />
-						Danh sách nhà cung cấp
+						Danh sách đối tác bán hàng
 					</Button>
 				</Link>
-				<Link to={'/vender/overall'}>
+				<Link to={'/trading_partner/overall'}>
 					<Button
 						className='w-fit h-8 rounded-lg text-center min-w-max'
 						size={'xs'}
@@ -252,7 +216,7 @@ export default function VenderMainPage(props) {
 					onClick={handleToggleAddModal}
 					className='w-fit h-8 rounded-lg text-center min-w-max'>
 					<FontAwesomeIcon icon={faPlus} className='pr-2 w-4 h-4' />
-					Thêm nhà cung cấp
+					Thêm đối tác bán hàng
 				</Button>
 			</div>
 			<Outlet />

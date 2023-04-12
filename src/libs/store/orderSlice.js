@@ -4,7 +4,7 @@ export const orderSlice = createSlice({
 	name: 'order',
 	initialState: {
 		userName: '',
-		filter: '',
+		filter: 'processing',
 		productName: '0',
 		fromPrice: -1,
 		toPrice: -1,
@@ -13,7 +13,7 @@ export const orderSlice = createSlice({
 		sort: 'datecreate',
 		order: 'desc',
 		pageNo: 1,
-		pageSize: 5
+		pageSize: 10
 	},
 	reducers: {
 		setOrder: (state, action) => {
@@ -50,7 +50,7 @@ export const orderSlice = createSlice({
 			state.toPrice = action.payload;
 		},
 		setOptionToDefault: (state, action) => {
-			state.filter = '';
+			state.filter = 'processing';
 			state.userName = '';
 			state.productName = '0';
 			state.fromDate = "";
@@ -60,7 +60,7 @@ export const orderSlice = createSlice({
 			state.sort = 'datecreate';
 			state.order = 'desc';
 			state.pageNo = 1;
-			state.pageSize = 5;
+			state.pageSize = 10;
 		}
 	},
 });

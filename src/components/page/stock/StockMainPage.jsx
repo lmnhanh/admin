@@ -8,9 +8,10 @@ import {
 	Select,
 	Table,
 	TextInput,
+	Textarea,
 } from 'flowbite-react';
 import { Fragment, useState, useEffect } from 'react';
-import { Link} from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
 	faAngleLeft,
 	faAngleRight,
@@ -47,6 +48,7 @@ export default function StockMainPage(props) {
 		initialValues: {
 			productDetailId: '',
 			isManualUpdate: true,
+			description: '',
 			value: 1,
 		},
 		validationSchema: yup.object({
@@ -54,6 +56,9 @@ export default function StockMainPage(props) {
 				.number()
 				.min(0, 'Số lượng không hợp lệ')
 				.required('Số lượng còn lại không được trống!'),
+				description: yup
+				.string()
+				.required('Chú thích cho cập nhật số lượng sản phẩm là bắt buộc!')
 		}),
 		onSubmit: async (values) => {
 			ToastPromise(axios.post('/api/stocks', values), {
@@ -61,6 +66,7 @@ export default function StockMainPage(props) {
 				success: (response) => {
 					setShowModal(false);
 					fetchProductDetails(selectedProduct);
+					fetchChanges(formik.values.productDetailId, pageNo, pagesize, fromDate, toDate);
 					return `Đã cập nhật số lượng sản phẩm`;
 				},
 				error: (error) => {
@@ -103,7 +109,7 @@ export default function StockMainPage(props) {
 
 	const fetchProductDetails = async (productId) => {
 		const { data, status } = await axios.get(
-			`/api/productdetails?productId=${productId}`
+			`/api/productdetails?productId=${productId}&isInStock=false`
 		);
 		status === 200 && setProductDetails(data);
 	};
@@ -116,9 +122,6 @@ export default function StockMainPage(props) {
 		toDate
 	) => {
 		const { data, status } = await axios.get(
-			`/api/stocks/${productDetailId}/changes?page=${page}&size=${size}&fromDate=${fromDate}&toDate=${toDate}`
-		);
-		console.log(
 			`/api/stocks/${productDetailId}/changes?page=${page}&size=${size}&fromDate=${fromDate}&toDate=${toDate}`
 		);
 		if (status === 200) {
@@ -159,7 +162,7 @@ export default function StockMainPage(props) {
 			<Modal
 				show={showModal}
 				dismissible={true}
-				size={'md'}
+				size={'lg'}
 				onClose={handleToggleModal}>
 				<Modal.Header>
 					Cập nhật:{' '}
@@ -172,11 +175,12 @@ export default function StockMainPage(props) {
 				<Modal.Body className='flex flex-col'>
 					<Label htmlFor='manualUpdate'>{`Số lượng (kg) hiện tại`}</Label>
 					<TextInput
-						sizing={'sm'}
+						sizing={'md'}
 						min={0}
 						type={'number'}
 						id={'manualUpdate'}
 						name={'value'}
+						className={'text-sm'}
 						onChange={formik.handleChange}
 						value={formik.values.value}
 						placeholder={formik.values.value}
@@ -187,6 +191,25 @@ export default function StockMainPage(props) {
 									<span>
 										<FontAwesomeIcon icon={faWarning} className='px-1' />
 										{formik.errors.value}
+									</span>
+								)}
+							</span>
+						}
+					/>
+					<Label htmlFor='description'>Chú thích</Label>
+					<Textarea
+						id={'description'}
+						name={'description'}
+						onChange={formik.handleChange}
+						value={formik.values.description}
+						placeholder={formik.values.description}
+						color={formik.errors.description && 'failure'}
+						helperText={
+							<span>
+								{formik.errors.description && (
+									<span>
+										<FontAwesomeIcon icon={faWarning} className='px-1' />
+										{formik.errors.description}
 									</span>
 								)}
 							</span>
@@ -276,7 +299,7 @@ export default function StockMainPage(props) {
 										}}>
 										<Table.Cell className='font-medium'>{item.unit}</Table.Cell>
 										<Table.Cell className='text-gray-900'>
-											{item.stock}
+											{item.stock.toFixed()}
 										</Table.Cell>
 									</Table.Row>
 								))}
@@ -292,64 +315,74 @@ export default function StockMainPage(props) {
 							</Button>
 						)}
 					</div>
+
 					<div className='grow items-center'>
-						<div className='flex gap-x-2 mb-2'>
-							<div className='grow'>
-								<Label>Ngày tạo từ:</Label>
-								<TextInput
-									type={'date'}
-									sizing={'sm'}
-									onChange={(e) => {
-										handleChangeFromDate(
-											e.target.value || new Date().toISOString()
-										);
-									}}
-								/>
+						{selectedProductDetail !== null && (
+							<div className='flex gap-x-2 mb-2'>
+								<div className='grow'>
+									<Label>Ngày tạo từ:</Label>
+									<TextInput
+										type={'date'}
+										sizing={'sm'}
+										onChange={(e) => {
+											handleChangeFromDate(
+												e.target.value || new Date().toISOString()
+											);
+										}}
+									/>
+								</div>
+								<div className='grow'>
+									<Label>Đến:</Label>
+									<TextInput
+										type={'date'}
+										sizing={'sm'}
+										onChange={(e) => {
+											handleChangeToDate(
+												e.target.value || new Date().toISOString()
+											);
+										}}
+									/>
+								</div>
 							</div>
-							<div className='grow'>
-								<Label>Đến:</Label>
-								<TextInput
-									type={'date'}
-									sizing={'sm'}
-									onChange={(e) => {
-										handleChangeToDate(
-											e.target.value || new Date().toISOString()
-										);
-									}}
-								/>
-							</div>
-						</div>
+						)}
+
 						<Table hoverable={true}>
 							<Table.Head>
 								<Table.HeadCell>Ngày thực hiện</Table.HeadCell>
 								<Table.HeadCell>Loại biến động</Table.HeadCell>
 								<Table.HeadCell>Số lượng</Table.HeadCell>
+								<Table.HeadCell>Mô tả</Table.HeadCell>
 							</Table.Head>
-							<Table.Body className='divide-y'>
-								{changes.map((item, index) => (
-									<Table.Row
-										title='Click để xem chi tiết'
-										className='bg-white mx-1 cursor-pointer hover:bg-gradient-to-r hover:from-cyan-100 hover:to-pink-100'
-										key={index}
-										onClick={() => {}}>
-										<Table.Cell>{ParseToDate(item.dateUpdate)}</Table.Cell>
-										<Table.Cell className='whitespace-nowrap font-medium text-gray-900'>
-											{item.type}
-										</Table.Cell>
-										<Table.Cell className='whitespace-nowrap font-medium text-gray-900'>
-											{item.orderId !== '' || item.invoiceId === '' ? (
-												<Badge color={'failure'} className={'w-fit'}>{`${
-													(item.value < 0)? '+ ': '- '
-												}${ Math.abs(item.value)} kg`}</Badge>
-											) : (
-												<Badge
-													color={'success'}
-													className={'w-fit'}>{`+ ${item.value} kg`}</Badge>
-											)}
-										</Table.Cell>
-									</Table.Row>
-								))}
-							</Table.Body>
+							{selectedProductDetail !== null && (
+								<Table.Body className='divide-y'>
+									{changes.map((item, index) => (
+										<Table.Row
+											title='Click để xem chi tiết'
+											className='bg-white mx-1 cursor-pointer hover:bg-gradient-to-r hover:from-cyan-100 hover:to-pink-100'
+											key={index}
+											onClick={() => {}}>
+											<Table.Cell>{ParseToDate(item.dateUpdate)}</Table.Cell>
+											<Table.Cell className='whitespace-nowrap font-medium text-gray-900'>
+												{item.type}
+											</Table.Cell>
+											<Table.Cell className='whitespace-nowrap font-medium text-gray-900'>
+												{item.orderId !== '' || item.invoiceId === '' ? (
+													<Badge color={'failure'} className={'w-fit'}>{`${
+														item.value < 0 ? '+ ' : '- '
+													}${Math.abs(item.value).toFixed(2)} kg`}</Badge>
+												) : (
+													<Badge
+														color={'success'}
+														className={'w-fit'}>{`+ ${item.value} kg`}</Badge>
+												)}
+											</Table.Cell>
+											<Table.Cell className='whitespace-nowrap font-medium text-gray-900'>
+												{item.description}
+											</Table.Cell>
+										</Table.Row>
+									))}
+								</Table.Body>
+							)}
 						</Table>
 						<div className=' bg-white bottom-0 flex justify-center'>
 							{totalPage !== 1 && (

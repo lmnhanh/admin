@@ -9,7 +9,7 @@ import {
 	faArrowLeft,
 } from '@fortawesome/free-solid-svg-icons';
 import * as yup from 'yup';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { Fragment, useEffect, useState } from 'react';
 import { FormatCurrency } from '../../../libs/helper';
@@ -136,19 +136,20 @@ export default function NewInvoicePage() {
 		const fetchProducts = async () => {
 			const { data, status } = await axios.get(`/api/products?page=0`);
 			if (status === 200) {
-				setProducts(
-					data.products.map((item) => ({
+				setProducts([
+					{ label: 'Chọn sản phẩm', value: 0 },
+					...data.products.map((item) => ({
 						value: item.id,
 						label: item.name,
-					}))
-				);
+					})),
+				]);
 			}
 		};
 
 		fetchVenders();
 		fetchProducts();
 		document.title = 'Thêm đơn nhập hàng';
-	}, [formik.values]);
+	}, [formik.values, query]);
 
 	return (
 		<Fragment>

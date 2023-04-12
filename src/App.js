@@ -25,6 +25,11 @@ import OrderMainPage from './components/page/order/OrderMainPage';
 import OrderListPage from './components/page/order/OrderListPage';
 import OrderInfoPage from './components/page/order/OrderInfoPage';
 import NewOrderPage from './components/page/order/NewOrderPage';
+import PriceHistoryPage from './components/page/product/ProductPricesPage';
+import StatisticMainPage from './components/page/statistic/StatisticMainPage';
+import PartnerMainPage from './components/page/partner/PartnerMainPage';
+import PromotionMainPage from './components/page/promotion/PromotionMainPage';
+import TradingPartnerListPage from './components/page/partner/PartnerListPage';
 
 const router = createBrowserRouter([
 	{
@@ -81,6 +86,32 @@ const router = createBrowserRouter([
 					{
 						path: '/product/:id/detail',
 						element: <NewProductDetail/>
+					},
+					{
+						path: '/product/:id/prices',
+						element: <PriceHistoryPage/>
+					}
+				],
+			},
+			{
+				path: '/trading_partner',
+				element: <PartnerMainPage />,
+				children: [
+					{
+						path: '/trading_partner',
+						element: <TradingPartnerListPage />,
+					},
+					{
+						path: '/trading_partner/:id',
+						element: <VenderInfoPage />,
+					},
+					{
+						path: '/trading_partner/new',
+						element: <NewProductPage />,
+					},
+					{
+						path: '/trading_partner/overall',
+						element: <CategoryOverallPage />,
 					}
 				],
 			},
@@ -149,6 +180,32 @@ const router = createBrowserRouter([
 						element: <CategoryOverallPage />,
 					}
 				],
+			},
+			{
+				path: '/promotion',
+				element: <PromotionMainPage />,
+				children: [
+					{
+						path: '/promotion',
+						element: <OrderListPage />,
+					},
+					{
+						path: '/promotion/:id',
+						element: <OrderInfoPage />,
+					},
+					{
+						path: '/promotion/new',
+						element: <NewOrderPage />,
+					},
+					{
+						path: '/promotion/overall',
+						element: <CategoryOverallPage />,
+					}
+				],
+			},
+			{
+				path: '/statistic',
+				element: <StatisticMainPage />
 			},
 			{
 				path: '/stock',
