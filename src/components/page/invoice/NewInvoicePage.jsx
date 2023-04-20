@@ -9,7 +9,7 @@ import {
 	faArrowLeft,
 } from '@fortawesome/free-solid-svg-icons';
 import * as yup from 'yup';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Fragment, useEffect, useState } from 'react';
 import { FormatCurrency } from '../../../libs/helper';
@@ -27,6 +27,7 @@ export default function NewInvoicePage() {
 	const [detailStep, setDetailStep] = useState(false);
 	const [venderStep, setVenderStep] = useState(true);
 	const [confirmStep, setConfirmStep] = useState(!venderStep);
+	const navigate = useNavigate();
 
 	const formik = useFormik({
 		initialValues: {
@@ -53,6 +54,10 @@ export default function NewInvoicePage() {
 				{
 					pending: 'Đang thêm đơn nhập hàng',
 					success: (response) => {
+						setVenderStep(true);
+						setDetailStep(false);
+						setConfirmStep(false);
+						formik.resetForm();
 						return (
 							<div>
 								Đã thêm đơn nhập hàng
@@ -181,7 +186,7 @@ export default function NewInvoicePage() {
 								onChange={(selected) => {
 									formik.values.venderId = selected.value;
 								}}
-								options={venders}
+								options={venders ?? []}
 							/>
 						</div>
 						<Button

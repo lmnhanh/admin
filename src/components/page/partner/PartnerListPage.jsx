@@ -71,7 +71,7 @@ export default function TradingPartnerListPage(props) {
 		},
 		{
 			name: 'emailConfirmed',
-			des: 'Đợi xác nhận email',
+			des: 'Chưa xác nhận email',
 		}
 	];
 

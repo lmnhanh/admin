@@ -2,9 +2,10 @@ import { faBars, faChartLine, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button, Card } from 'flowbite-react';
 import { Fragment } from 'react';
-import { Link, Outlet } from 'react-router-dom';
+import { Link, Outlet, useNavigate } from 'react-router-dom';
 
 export default function PromotionMainPage() {
+	const navigate = useNavigate();
 	return (
 		<Fragment>
 			<div className='flex gap-2'>
@@ -29,7 +30,7 @@ export default function PromotionMainPage() {
 				<Button
 					size={'xs'}
 					gradientDuoTone={'cyanToBlue'}
-					// onClick={handleToggleAddModal}
+					onClick={()=>{navigate('/promotion/new')}}
 					className='w-fit h-8 rounded-lg text-center min-w-max'>
 					<FontAwesomeIcon icon={faPlus} className='pr-2 w-4 h-4' />
 					Thêm khuyến mãi

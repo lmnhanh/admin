@@ -12,7 +12,7 @@ export class Root extends Component {
 	}
 	render() {
 		return (
-			<div className='flex flex-col h-screen overflow-hidden'>
+			<main className='flex flex-col h-screen overflow-hidden'>
 				<Header />
 				<div className='flex h-full overflow-auto mb-12'>
 					<MainSidebar />
@@ -32,7 +32,7 @@ export class Root extends Component {
 					pauseOnHover={false}
 					theme='light'
 				/>
-			</div>
+			</main>
 		);
 	}
 }

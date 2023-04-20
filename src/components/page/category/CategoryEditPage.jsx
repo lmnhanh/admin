@@ -27,6 +27,7 @@ import { ParseToDate } from './../../../libs/helper';
 import BreadcrumbPath from './../../util/BreadCrumbPath';
 import NotFound404 from './../../util/NotFound404';
 import ProductList from '../../list/ProductList';
+import Swal from 'sweetalert2';
 
 export default function CategoryEditPage(props) {
 	const { id } = useParams();
@@ -49,17 +50,26 @@ export default function CategoryEditPage(props) {
 				.required('Tên loại không được trống'),
 		}),
 		onSubmit: async (values) => {
-			ToastPromise(axios.put(`/api/categories/${id}`, values), {
-				pending: 'Đang lưu chỉnh sửa',
-				success: (response) => {
-					setLoading(true);
-					setEditing(false);
-					return `Đã lưu chỉnh sửa`;
-				},
-				error: (error) => {
-					let errors = error.response.data.errors.join(', ');
-					return errors;
-				},
+			Swal.fire({
+				title: values.name,
+				text: 'Xác nhận cập nhật loại sản phẩm',
+				icon: 'question',
+				confirmButtonColor: '#108506',
+				confirmButtonText: 'Cập nhật',
+			}).then((result) => {
+				result.isConfirmed &&
+					ToastPromise(axios.put(`/api/categories/${id}`, values), {
+						pending: 'Đang lưu chỉnh sửa',
+						success: (response) => {
+							setLoading(true);
+							setEditing(false);
+							return `Đã lưu chỉnh sửa`;
+						},
+						error: (error) => {
+							let errors = error.response.data.errors.join(', ');
+							return errors;
+						},
+					});
 			});
 		},
 	});
@@ -73,18 +83,27 @@ export default function CategoryEditPage(props) {
 	};
 
 	const handleOnDelete = async () => {
-		ToastPromise(axios.delete(`/api/categories/${id}`), {
-			pending: 'Đang xóa loại hải sản',
-			success: (response) => {
-				if (response.status === 204 && response.data === '') {
-					navigate('/category');
-				}
-				return `Đã xóa ${category.name}`;
-			},
-			error: (error) => {
-				let errors = error.response.data.errors.join(', ');
-				return errors;
-			},
+		Swal.fire({
+			title: category.name,
+			text: 'Xác nhận xóa loại sản phẩm',
+			icon: 'question',
+			confirmButtonColor: '#d33',
+			confirmButtonText: 'Xóa',
+		}).then((result) => {
+			result.isConfirmed &&
+				ToastPromise(axios.delete(`/api/categories/${id}`), {
+					pending: 'Đang xóa loại hải sản',
+					success: (response) => {
+						if (response.status === 204 && response.data === '') {
+							navigate('/category');
+						}
+						return `Đã xóa ${category.name}`;
+					},
+					error: (error) => {
+						let errors = error.response.data.errors.join(', ');
+						return errors;
+					},
+				});
 		});
 	};
 
@@ -99,7 +118,7 @@ export default function CategoryEditPage(props) {
 				}
 			} catch (error) {
 				error.response.status === 404 && setCategory(null);
-			}finally{
+			} finally {
 				setLoading(false);
 			}
 		};
@@ -232,26 +251,28 @@ export default function CategoryEditPage(props) {
 						</div>
 					) : (
 						<div className='flex justify-center gap-2'>
-								<Button
-									className='w-fit h-8 rounded-lg text-center'
-									size={'xs'}
-									onClick={()=>{navigate(-1)}}
-									gradientDuoTone={'tealToLime'}>
-									<FontAwesomeIcon icon={faArrowLeft} className='pr-2 w-4 h-4' />
-									Trở về
-								</Button>
+							<Button
+								className='w-fit h-8 rounded-lg text-center'
+								size={'xs'}
+								onClick={() => {
+									navigate(-1);
+								}}
+								gradientDuoTone={'tealToLime'}>
+								<FontAwesomeIcon icon={faArrowLeft} className='pr-2 w-4 h-4' />
+								Trở về
+							</Button>
 							<Button
 								className='w-fit h-8 rounded-lg text-center'
 								onClick={handleOnDelete}
 								size={'xs'}
-								gradientDuoTone={"pinkToOrange"}>
+								gradientDuoTone={'pinkToOrange'}>
 								<FontAwesomeIcon icon={faTrashAlt} className='pr-2 w-4 h-4' />
 								Xóa
 							</Button>
 						</div>
 					)}
 				</Card>
-				<ProductList categoryId={id}/>
+				<ProductList categoryId={id} />
 			</div>
 		</Fragment>
 	) : (

@@ -44,6 +44,7 @@ import SelectableInput from '../../util/SelectableInput';
 import TextEditor from '../../util/TextEditor';
 import UpLoadImage from './UploadImage';
 import { FormatCurrency } from '../../../libs/helper';
+import Swal from 'sweetalert2';
 
 export default function ProductInfoPage(props) {
 	const { id } = useParams();
@@ -79,23 +80,32 @@ export default function ProductInfoPage(props) {
 		onSubmit: async (values) => {
 			formik.values.description = quillRef.current.value.toString();
 			if (!values.isActive) values.isRecommended = false;
-			ToastPromise(axios.put(`/api/products/${id}`, values), {
-				pending: 'Đang cập nhật sản phẩm',
-				success: (response) => {
-					setEditing(false);
-					fetchProduct();
-					return <div className=''>Cập nhật thành công</div>;
-				},
-				error: (error) => {
-					if (error.response?.status === 400) {
-						let finalObj = {};
-						error.response?.data.forEach((item) =>
-							Object.assign(finalObj, item)
-						);
-						formik.setErrors(finalObj);
-						return 'Lỗi! Không thể thêm sản phẩm!';
-					}
-				},
+			Swal.fire({
+				title: product.name,
+				text: 'Xác nhận cập nhật tiết sản phẩm',
+				icon: 'question',
+				confirmButtonColor: '#3085d6',
+				confirmButtonText: 'Cập nhật',
+			}).then((result) => {
+				result.isConfirmed &&
+					ToastPromise(axios.put(`/api/products/${id}`, values), {
+						pending: 'Đang cập nhật sản phẩm',
+						success: (response) => {
+							setEditing(false);
+							fetchProduct();
+							return <div className=''>Cập nhật thành công</div>;
+						},
+						error: (error) => {
+							if (error.response?.status === 400) {
+								let finalObj = {};
+								error.response?.data.forEach((item) =>
+									Object.assign(finalObj, item)
+								);
+								formik.setErrors(finalObj);
+								return 'Lỗi! Không thể thêm sản phẩm!';
+							}
+						},
+					});
 			});
 		},
 	});
@@ -140,7 +150,7 @@ export default function ProductInfoPage(props) {
 				}))
 			);
 		}
-	},[id]);
+	}, [id]);
 
 	useEffect(() => {
 		document.title = 'Thông tin sản phẩm';
@@ -174,25 +184,29 @@ export default function ProductInfoPage(props) {
 	}, [id, dispatch, fetchProduct, fetchImages]);
 
 	const handleDelete = async (id) => {
-		try {
-			ToastPromise(axios.delete(`/api/products/${id}`), {
-				pending: 'Đang xóa sản phẩm',
-				success: (response) => {
-					navigate('/product', { replace: true });
-					return <div>Đã xóa {product.name}</div>;
-				},
-				error: (error) => {
-					return 'Lỗi! Không thể xóa sản phẩm!';
-				},
-			});
-		} catch (error) {
-			navigate('/');
-		}
+		Swal.fire({
+			title: product.name,
+			text: 'Xác nhận xóa sản phẩm',
+			icon: 'question',
+			confirmButtonColor: '#d33',
+			confirmButtonText: 'Xóa',
+		}).then((result) => {
+			result.isConfirmed &&
+				ToastPromise(axios.delete(`/api/products/${id}`), {
+					pending: 'Đang xóa sản phẩm',
+					success: (response) => {
+						navigate('/product', { replace: true });
+						return <div>Đã xóa {product.name}</div>;
+					},
+					error: (error) => {
+						return 'Lỗi! Không thể xóa sản phẩm!';
+					},
+				});
+		});
 	};
 
 	return product !== null && categories !== [] ? (
 		<Fragment>
-			
 			<BreadcrumbPath
 				items={[
 					{
@@ -256,7 +270,7 @@ export default function ProductInfoPage(props) {
 								<Dropdown.Item
 									className='w-full hover:text-blue-600 hover:bg-gradient-to-r hover:from-cyan-100 hover:to-gray-100'
 									onClick={() => {
-										navigate(`/product/${product.id}/prices`)
+										navigate(`/product/${product.id}/prices`);
 									}}>
 									<FontAwesomeIcon
 										className='pr-1 w-4 h-4 text-yellow-300'

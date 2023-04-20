@@ -30,6 +30,14 @@ import StatisticMainPage from './components/page/statistic/StatisticMainPage';
 import PartnerMainPage from './components/page/partner/PartnerMainPage';
 import PromotionMainPage from './components/page/promotion/PromotionMainPage';
 import TradingPartnerListPage from './components/page/partner/PartnerListPage';
+import ProfitStatistic from './components/page/statistic/ProfitStatistic';
+import PricesChart from './components/page/statistic/PricesChart';
+import NewPromotionPage from './components/page/promotion/NewPromotionPage';
+import PromotionListPage from './components/page/promotion/PromotionListPage';
+import PromotionInfoPage from './components/page/promotion/PromotionInfoPage';
+import ShopMainPage from './components/layout/shop/ShopMainPage';
+import { elements } from 'chart.js';
+import ShopIndex from './components/page/shop/ShopIndex';
 
 const router = createBrowserRouter([
 	{
@@ -85,12 +93,12 @@ const router = createBrowserRouter([
 					},
 					{
 						path: '/product/:id/detail',
-						element: <NewProductDetail/>
+						element: <NewProductDetail />,
 					},
 					{
 						path: '/product/:id/prices',
-						element: <PriceHistoryPage/>
-					}
+						element: <PriceHistoryPage />,
+					},
 				],
 			},
 			{
@@ -112,7 +120,7 @@ const router = createBrowserRouter([
 					{
 						path: '/trading_partner/overall',
 						element: <CategoryOverallPage />,
-					}
+					},
 				],
 			},
 			{
@@ -134,7 +142,7 @@ const router = createBrowserRouter([
 					{
 						path: '/vender/overall',
 						element: <CategoryOverallPage />,
-					}
+					},
 				],
 			},
 			{
@@ -156,7 +164,7 @@ const router = createBrowserRouter([
 					{
 						path: '/invoice/overall',
 						element: <CategoryOverallPage />,
-					}
+					},
 				],
 			},
 			{
@@ -178,7 +186,7 @@ const router = createBrowserRouter([
 					{
 						path: '/order/overall',
 						element: <CategoryOverallPage />,
-					}
+					},
 				],
 			},
 			{
@@ -187,31 +195,52 @@ const router = createBrowserRouter([
 				children: [
 					{
 						path: '/promotion',
-						element: <OrderListPage />,
+						element: <PromotionListPage />,
 					},
 					{
 						path: '/promotion/:id',
-						element: <OrderInfoPage />,
+						element: <PromotionInfoPage />,
 					},
 					{
 						path: '/promotion/new',
-						element: <NewOrderPage />,
+						element: <NewPromotionPage />,
 					},
 					{
 						path: '/promotion/overall',
 						element: <CategoryOverallPage />,
-					}
+					},
 				],
 			},
 			{
 				path: '/statistic',
-				element: <StatisticMainPage />
+				element: <StatisticMainPage />,
+				children: [
+					{
+						path: '/statistic/profit',
+						element: <ProfitStatistic />,
+					},
+					{
+						path: '/statistic/prices',
+						element: <PricesChart />,
+					},
+				],
 			},
 			{
 				path: '/stock',
-				element: <StockMainPage />
-			}
+				element: <StockMainPage />,
+			},
 		],
+	},
+	{
+		path: '/shop',
+		element: <ShopMainPage />,
+		children: [
+			{
+				path: '/shop',
+				element: <ShopIndex />,
+			},
+		],
+		errorElement: <NotFound404 />,
 	},
 	{
 		path: '/login',

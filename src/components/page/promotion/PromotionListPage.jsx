@@ -12,7 +12,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
 	faAngleLeft,
 	faAngleRight,
-	faArrowRight,
 	faFilter,
 	faGear,
 	faHome,
@@ -25,8 +24,8 @@ import {
 import FilterBadge from '../../util/FilterBadge';
 import { useSelector, useDispatch } from 'react-redux';
 import {
-	setUserName,
-	setProductName,
+	setName,
+	setProductId,
 	setFilter,
 	setOptionToDefault,
 	setFromDate,
@@ -35,38 +34,35 @@ import {
 	setPageNo,
 	setSort,
 	setPageSize,
-	setFromPrice,
-	setToPrice,
-} from '../../../libs/store/orderSlice';
+} from '../../../libs/store/promotionSlice';
 import ReactPaginate from 'react-paginate';
 import BreadcrumbPath from '../../util/BreadCrumbPath';
 import { setAuthorized } from '../../../libs/store/slices';
-import OrderList from '../../list/OrderList';
-import { FormatCurrency, ParseToDate } from '../../../libs/helper';
+import { ParseToDate } from '../../../libs/helper';
 import SelectableInput from '../../util/SelectableInput';
+import PromotionList from '../../list/PromotionList';
 
-export default function OrderListPage() {
-	const [orders, setOrders] = useState(null);
+export default function PromotionListPage() {
+	const [promotions, setPromotions] = useState(null);
 	const [products, setProducts] = useState([{ value: '0', label: 'Tất cả' }]);
 	const [showOption, setShowOption] = useState(false);
 	const [totalPage, setTotalPage] = useState(1);
-	const [totalOrders, setTotalOrders] = useState(0);
+	const [totalPromotions, setTotalPromotions] = useState(0);
 
 	const {
 		order,
 		sort,
 		filter,
-		userName,
-		productName,
+		name,
+		type,
+		productId,
 		fromDate,
 		toDate,
 		pageNo,
-		fromPrice,
-		toPrice,
 		pageSize,
-	} = useSelector((state) => state.order);
+	} = useSelector((state) => state.promotion);
 
-	const searchUserInput = useRef({ value: userName });
+	const searchUserInput = useRef({ value: name });
 	const dispatch = useDispatch();
 
 	const SortOption = [
@@ -75,12 +71,12 @@ export default function OrderListPage() {
 			des: 'Id',
 		},
 		{
-			name: 'total',
-			des: 'Tổng giá trị',
-		},
-		{
 			name: 'datecreate',
 			des: 'Ngày tạo',
+		},
+		{
+			name: 'product',
+			des: 'Sản phẩm áp dụng',
 		},
 	];
 
@@ -90,38 +86,34 @@ export default function OrderListPage() {
 			des: 'Tất cả',
 		},
 		{
-			name: 'processed',
-			des: 'Đã xử lí',
+			name: 'takingplace',
+			des: 'Đang áp dụng',
 		},
 		{
-			name: 'success',
-			des: 'Thành công',
+			name: 'incoming',
+			des: 'Sắp áp dụng',
 		},
 		{
-			name: 'fail',
-			des: 'Thất bại',
+			name: 'passed',
+			des: 'Ngưng áp dụng',
 		},
 		{
-			name: 'anonymous',
-			des: 'Khách vãng lai',
-		},
-		{
-			name: 'processing',
-			des: 'Đang đợi xử lí',
+			name: 'unavailable',
+			des: 'Không khả dụng',
 		},
 	];
 
-	const fetchOrders = useCallback(async () => {
+	const fetchPromotions = useCallback(async () => {
 		try {
 			const { data, status } = await axios.get(
-				`/api/orders?filter=${filter}&userName=${userName}&productId=${productName}&fromDate=${fromDate}&toDate=${toDate}&fromPrice=${fromPrice}&toPrice=${toPrice}&page=${pageNo}&size=${pageSize}&sort=${sort}&order=${order}`
+				`/api/promotions?filter=${filter}&name=${name}&productId=${productId}&type=${type}&fromDate=${fromDate}&toDate=${toDate}&page=${pageNo}&size=${pageSize}&sort=${sort}&order=${order}`
 			);
 
 			if (status === 200) {
-				data.orders.length === 0 && dispatch(setPageNo(1));
-				setTotalOrders(data.totalRows);
+				data.promotions.length === 0 && dispatch(setPageNo(1));
+				setTotalPromotions(data.totalRows);
 				setTotalPage(data.totalPages);
-				setOrders(data.orders);
+				setPromotions(data.promotions);
 			}
 		} catch (error) {
 			(error.response.status === 401 || error.response.status === 403) &&
@@ -130,20 +122,19 @@ export default function OrderListPage() {
 	}, [
 		pageNo,
 		pageSize,
+		type,
 		sort,
 		filter,
 		order,
-		userName,
-		productName,
+		name,
+		productId,
 		toDate,
 		fromDate,
-		fromPrice,
-		toPrice,
 		dispatch,
 	]);
 
 	useEffect(() => {
-		document.title = 'Danh sách đơn bán hàng';
+		document.title = 'Danh sách khuyến mãi';
 
 		const fetchProducts = async () => {
 			const { data, status } = await axios.get(`/api/products?page=0`);
@@ -158,9 +149,9 @@ export default function OrderListPage() {
 			}
 		};
 
-		fetchOrders();
+		fetchPromotions();
 		fetchProducts();
-	}, [fetchOrders]);
+	}, [fetchPromotions]);
 
 	const handleSortOnClick = (prev) => {
 		let nextIndex = SortOption.findIndex((opt) => opt.name === prev) + 1;
@@ -191,22 +182,12 @@ export default function OrderListPage() {
 
 	const handleUseVenderFilter = (value) => {
 		handlePageChange(1);
-		dispatch(setUserName(value));
+		dispatch(setName(value));
 	};
 
 	const handleUseProductFilter = (value) => {
 		handlePageChange(1);
-		dispatch(setProductName(value));
-	};
-
-	const handleUseFromPrice = (value) => {
-		handlePageChange(1);
-		dispatch(setFromPrice(value));
-	};
-
-	const handleUseToPrice = (value) => {
-		handlePageChange(1);
-		dispatch(setToPrice(value));
+		dispatch(setProductId(value));
 	};
 
 	const handleUseFromDate = (value) => {
@@ -245,16 +226,16 @@ export default function OrderListPage() {
 							</>
 						),
 					},
-					{ to: '/order', text: 'Đơn bán hàng' },
+					{ to: '/promotion', text: 'Khuyến mãi' },
 				]}
 			/>
-			{orders === null ? (
+			{promotions === null ? (
 				<Loader />
 			) : (
 				<div className='container relative min-w-max'>
 					<Card>
 						<div className='text-md font-bold items-center flex gap-2'>
-							<span className='min-w-fit mr-3'>Danh sách đơn bán hàng</span>
+							<span className='min-w-fit mr-3'>Danh sách khuyến mãi</span>
 							{FilterOption.map(
 								(opt, index) =>
 									filter === opt.name && (
@@ -278,27 +259,7 @@ export default function OrderListPage() {
 									icon={faFilter}
 								/>
 							)}
-							{Number.parseInt(fromPrice) !== -1 ? (
-								<FilterBadge
-									color={'purple'}
-									label={`Từ ${FormatCurrency(fromPrice)}${
-										Number.parseInt(toPrice) !== -1
-											? ` đến ${FormatCurrency(toPrice)}`
-											: ''
-									}`}
-									handleOnClose={() => handleShowOption()}
-									icon={faFilter}
-								/>
-							) : (
-								Number.parseInt(toPrice) !== -1 && (
-									<FilterBadge
-										color={'purple'}
-										label={`Dưới ${FormatCurrency(toPrice)}`}
-										handleOnClose={() => handleShowOption()}
-										icon={faFilter}
-									/>
-								)
-							)}
+
 							{SortOption.map(
 								(opt, index) =>
 									sort === opt.name && (
@@ -329,7 +290,7 @@ export default function OrderListPage() {
 								/>
 							)}
 							<Badge className='min-w-max' color={'success'}>
-								{totalOrders} đơn
+								{totalPromotions} khuyến mãi
 							</Badge>
 							<Badge
 								color={'purple'}
@@ -351,20 +312,20 @@ export default function OrderListPage() {
 									type={'search'}
 									spellCheck={false}
 									ref={searchUserInput}
-									defaultValue={userName}
+									defaultValue={name}
 									sizing={'sm'}
 									maxLength={30}
 									autoFocus={true}
 									onChange={(event) => {
 										if (event.target.value.length === 0) {
 											event.preventDefault();
-											dispatch(setUserName(event.target.value));
+											dispatch(setName(event.target.value));
 										}
 									}}
 									onKeyDown={(event) => {
 										if (event.key === 'Enter') {
 											event.preventDefault();
-											dispatch(setUserName(event.target.value));
+											dispatch(setName(event.target.value));
 										}
 									}}
 									placeholder={'Tìm kiếm khách hàng'}
@@ -384,23 +345,23 @@ export default function OrderListPage() {
 									<div>
 										<Label>Tên khách hàng:</Label>
 										<input
-											className='rounded-md h-fit text-sm focus:border-blue-500 ring-2 focus:ring-blue-300 w-full'
+											className='rounded-md h-fit text-sm focus:bpromotion-blue-500 ring-2 focus:ring-blue-300 w-full'
 											type={'search'}
 											spellCheck={false}
 											ref={searchUserInput}
-											defaultValue={userName}
+											defaultValue={name}
 											maxLength={20}
 											autoFocus={true}
 											onChange={(event) => {
 												if (event.target.value.length === 0) {
 													event.preventDefault();
-													dispatch(setUserName(event.target.value));
+													dispatch(setName(event.target.value));
 												}
 											}}
 											onKeyDown={(event) => {
 												if (event.key === 'Enter') {
 													event.preventDefault();
-													dispatch(setUserName(event.target.value));
+													dispatch(setName(event.target.value));
 												}
 											}}
 											placeholder={'Tìm kiếm'}
@@ -416,36 +377,6 @@ export default function OrderListPage() {
 											}}
 											options={products}
 										/>
-									</div>
-									<div>
-										<Label>Giá trị từ:</Label>
-										<Select
-											sizing={'sm'}
-											value={fromPrice}
-											onChange={(e) => handleUseFromPrice(e.target.value)}>
-											<option value={-1}>Tất cả</option>
-											<option value={500000}>{FormatCurrency(500000)}</option>
-											<option value={1000000}>{FormatCurrency(1000000)}</option>
-											<option value={5000000}>{FormatCurrency(5000000)}</option>
-											<option value={10000000}>
-												{FormatCurrency(10000000)}
-											</option>
-										</Select>
-									</div>
-									<div>
-										<Label>Đến:</Label>
-										<Select
-											sizing={'sm'}
-											value={toPrice}
-											onChange={(e) => handleUseToPrice(e.target.value)}>
-											<option value={-1}>Tất cả</option>
-											<option value={500000}>{FormatCurrency(500000)}</option>
-											<option value={1000000}>{FormatCurrency(1000000)}</option>
-											<option value={5000000}>{FormatCurrency(5000000)}</option>
-											<option value={10000000}>
-												{FormatCurrency(10000000)}
-											</option>
-										</Select>
 									</div>
 									<div>
 										<Label>Ngày tạo từ:</Label>
@@ -497,12 +428,12 @@ export default function OrderListPage() {
 								</div>
 							</Modal.Body>
 						</Modal>
-						{orders.length !== 0 ? (
+						{promotions.length !== 0 ? (
 							<Fragment>
-								<OrderList
-									data={orders}
+								<PromotionList
+									data={promotions}
 									offset={(pageNo - 1) * pageSize}
-									highlightText={userName}
+									highlightText={name}
 								/>
 								<div className='fixed w-full bg-white bottom-0 self-center flex justify-center'>
 									{totalPage !== 1 && (
@@ -525,7 +456,7 @@ export default function OrderListPage() {
 											previousClassName={'text-center text-gray-500 font-bold'}
 											onPageChange={(e) => handlePageChange(e.selected + 1)}
 											pageClassName={
-												'border border-gray-300 rounded flex items-center justify-center'
+												'bpromotion bpromotion-gray-300 rounded flex items-center justify-center'
 											}
 											activeClassName={
 												'bg-blue-200 bg-gradient-to-br text-blue-600 font-semibold'
@@ -542,10 +473,10 @@ export default function OrderListPage() {
 										name='perpage'
 										defaultValue={pageSize}
 										onChange={(e) => handleChangePagesize(e.target.value)}
-										className='w-fit h-fit mt-2 mr-5 bg-gray-50 border text-middle border-gray-300 text-gray-900 text-sm rounded-lg'>
-										<option value={10}>10 đơn</option>
-										<option value={25}>25 đơn</option>
-										<option value={50}>50 đơn</option>
+										className='w-fit h-fit mt-2 mr-5 bg-gray-50 bpromotion text-middle bpromotion-gray-300 text-gray-900 text-sm rounded-lg'>
+										<option value={10}>10 khuyến mãi</option>
+										<option value={25}>25 khuyến mãi</option>
+										<option value={50}>50 khuyến mãi</option>
 									</Select>
 								</div>
 							</Fragment>

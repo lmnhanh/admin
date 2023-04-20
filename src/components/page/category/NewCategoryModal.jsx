@@ -1,4 +1,11 @@
-import { Button, Checkbox, Label, TextInput, Badge, Modal } from 'flowbite-react';
+import {
+	Button,
+	Checkbox,
+	Label,
+	TextInput,
+	Badge,
+	Modal,
+} from 'flowbite-react';
 import { useFormik } from 'formik';
 import axios from 'axios';
 import ToastPromise from '../../util/ToastPromise';
@@ -6,13 +13,13 @@ import * as Yup from 'yup';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWarning } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { setId } from '../../../libs/store/categorySlice';
+import Swal from 'sweetalert2';
 
-export default function NewCategoryModal({handleOnSuccess, show, handleOnClose}) {
-
-	const dispatch = useDispatch();
-
+export default function NewCategoryModal({
+	handleOnSuccess,
+	show,
+	handleOnClose,
+}) {
 	const formik = useFormik({
 		initialValues: {
 			name: '',
@@ -25,42 +32,48 @@ export default function NewCategoryModal({handleOnSuccess, show, handleOnClose})
 				.required('Tên loại không được trống'),
 		}),
 		onSubmit: async (values) => {
-			ToastPromise(axios.post('/api/categories', values), {
-				pending: 'Đang thêm loại sản phẩm',
-				success: (response) => {
-					handleOnSuccess();
-					return (
-						<div>
-							Đã thêm {response.data.name}
-							<Link to={`/category/edit/${response.data.id}`}>
-								<Badge size={'xs'} className='w-fit' color={'info'}>
-									Xem chi tiết
-								</Badge>
-							</Link>
-						</div>
-					);
-				},
-				error: (error) => {
-					let errors = error.response.data.errors.join(', ');
-					return errors;
-				},
+			Swal.fire({
+				title: 'Xác nhận thêm loại sản phẩm',
+				text: values.name,
+				icon: 'info',
+				confirmButtonColor: '#3085d6',
+				confirmButtonText: 'Thêm',
+			}).then((result) => {
+				if (result.isConfirmed) {
+					ToastPromise(axios.post('/api/categories', values), {
+						pending: 'Đang thêm loại sản phẩm',
+						success: (response) => {
+							handleOnSuccess();
+							return (
+								<div>
+									Đã thêm {response.data.name}
+									<Link to={`/category/edit/${response.data.id}`}>
+										<Badge size={'xs'} className='w-fit' color={'info'}>
+											Xem chi tiết
+										</Badge>
+									</Link>
+								</div>
+							);
+						},
+						error: (error) => {
+							let errors = error.response.data.errors.join(', ');
+							return errors;
+						},
+					});
+					values.name = '';
+				}
 			});
-			values.name = '';
 		},
 	});
 
-	const handleOnKeyPress = (event)=>{
-		if(event.key === "Enter"){
-			formik.handleSubmit()
+	const handleOnKeyPress = (event) => {
+		if (event.key === 'Enter') {
+			formik.handleSubmit();
 		}
-	}
+	};
 
 	return (
-		<Modal
-			show={show}
-			dismissible={true}
-			size={'sm'}
-			onClose={handleOnClose}>
+		<Modal show={show} dismissible={true} size={'sm'} onClose={handleOnClose}>
 			<Modal.Header>Thêm loại hải sản</Modal.Header>
 			<Modal.Body>
 				<div className='flex flex-col gap-1'>

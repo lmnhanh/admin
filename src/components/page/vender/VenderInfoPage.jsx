@@ -32,6 +32,7 @@ import { useFormik } from 'formik';
 import * as yup from 'yup';
 import FilterBadge from '../../util/FilterBadge';
 import { ParseToDate } from '../../../libs/helper';
+import InvoiceList from '../../list/InvoiceList';
 
 export default function VenderInfoPage(props) {
 	const { id } = useParams();
@@ -95,7 +96,7 @@ export default function VenderInfoPage(props) {
 	}, [id]);
 
 	useEffect(() => {
-		document.title = 'Thông tin đơn nhập hàng';
+		document.title = 'Thông tin nhà cung cấp';
 
 		try {
 			fetchVender();
@@ -137,7 +138,7 @@ export default function VenderInfoPage(props) {
 			/>
 
 			<div className='container min-w-max'>
-				<Card className='relative'>
+				<Card className='relative mb-2'>
 					<div className='absolute md:top-3 md:right-3 invisible md:visible'>
 						{!editing && (
 							<Dropdown
@@ -443,7 +444,7 @@ export default function VenderInfoPage(props) {
 						</Fragment>
 					)}
 				</Card>
-				<div>Danh sách hóa đơn</div>
+				<InvoiceList vender={id} hideOption={true}/>
 			</div>
 		</Fragment>
 	) : (

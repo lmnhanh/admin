@@ -10,18 +10,20 @@ import {
 	faArrowLeft,
 	faCheck,
 	faCheckToSlot,
-	faClock, faHome,
+	faClock,
+	faHome,
 	faUserCheck,
 	faWarning,
-	faXmark
+	faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 import {
 	Badge,
 	Button,
 	Card,
 	Modal,
-	Table, TextInput,
-	Textarea
+	Table,
+	TextInput,
+	Textarea,
 } from 'flowbite-react';
 import 'react-image-gallery/styles/css/image-gallery.css';
 import '../product/imageGallery.css';
@@ -30,6 +32,7 @@ import { useFormik } from 'formik';
 import * as yup from 'yup';
 import FilterBadge from '../../util/FilterBadge';
 import { FormatCurrency, ParseToDate } from '../../../libs/helper';
+import Swal from 'sweetalert2';
 
 export default function OrderInfoPage() {
 	const { id } = useParams();
@@ -52,6 +55,8 @@ export default function OrderInfoPage() {
 			quantity: 1,
 			productDetailId: 0,
 			realQuantity: 0,
+
+			stock: 0,
 		},
 		validationSchema: yup.object({
 			description: yup
@@ -64,16 +69,24 @@ export default function OrderInfoPage() {
 				.required('Số lượng giao không được trống'),
 		}),
 		onSubmit: (values) => {
-			ToastPromise(axios.put(`/api/orders/${id}`, values), {
-				pending: 'Đang lưu thông tin đơn hàng',
-				success: () => {
-					fetchOrder();
-					setProcessing(false);
-					return <div>Đã lưu thông tin đơn hàng</div>;
-				},
-				error: () => {
-					return 'Lỗi! Không thể lưu thông tin đơn hàng!';
-				},
+			Swal.fire({
+				title: `Đơn cho ${order.user?.fullName ?? 'Khách vãng lai'}`,
+				text: 'Đơn hàng sẽ không được chỉnh sửa sau khi xác nhận!',
+				icon: 'question',
+				confirmButtonColor: '#108506',
+				confirmButtonText: 'Xác nhận đơn hàng',
+			}).then((result) => {
+				result.isConfirmed && ToastPromise(axios.put(`/api/orders/${id}`, values), {
+					pending: 'Đang lưu thông tin đơn hàng',
+					success: () => {
+						fetchOrder();
+						setProcessing(false);
+						return <div>Đã lưu thông tin đơn hàng</div>;
+					},
+					error: () => {
+						return 'Lỗi! Không thể lưu thông tin đơn hàng!';
+					},
+				});
 			});
 		},
 	});
@@ -97,6 +110,7 @@ export default function OrderInfoPage() {
 				id: detail.id,
 				unit: detail.productDetail.unit,
 				productName: detail.productDetail.productName,
+				stock: detail.productDetail.stock,
 				productDetailId: detail.productDetail.id,
 				price:
 					data.user === null
@@ -119,22 +133,27 @@ export default function OrderInfoPage() {
 		formik.values.productDetailId = cart.productDetailId;
 		formik.values.quantity = cart.quantity;
 		formik.values.realQuantity = cart.quantity;
+		formik.values.stock = cart.stock;
 	};
 
 	const handleSetStatusOrder = async (orderStatus) => {
-		ToastPromise(axios.post(`/api/orders/${id}?success=${orderStatus}`), {
-			pending: 'Đang lưu cập nhật trạng tháng đơn hàng',
-			success: () => {
-				fetchOrder();
-				return (
-					<div>
-						Đã cập nhật trạng thái đơn hàng
-					</div>
-				);
-			},
-			error: () => {
-				return 'Lỗi! Không thể cập nhật trạng thái đơn hàng!';
-			},
+		Swal.fire({
+			title: `Đơn cho ${order.user?.fullName ?? 'Khách vãng lai'}`,
+			text: 'Đơn hàng sẽ không được chỉnh sửa sau khi xác nhận!',
+			icon: 'question',
+			confirmButtonColor: '#108506',
+			confirmButtonText: 'Cập nhật',
+		}).then((result) => {
+			result.isConfirmed && ToastPromise(axios.post(`/api/orders/${id}?success=${orderStatus}`), {
+				pending: 'Đang lưu cập nhật trạng tháng đơn hàng',
+				success: () => {
+					fetchOrder();
+					return <div>Đã cập nhật trạng thái đơn hàng</div>;
+				},
+				error: () => {
+					return 'Lỗi! Không thể cập nhật trạng thái đơn hàng!';
+				},
+			});
 		});
 	};
 
@@ -178,10 +197,10 @@ export default function OrderInfoPage() {
 					</label>
 					<div>
 						<label htmlFor='realQuantity'>
-							Số lượng sẽ giao:
+							Số lượng sẽ giao: tối đa
 							<span className='font-semibold'>
 								{' '}
-								{formik.values.realQuantity} kg
+								{Number(formik.values.stock).toFixed(2)} kg
 							</span>
 						</label>
 						<TextInput
@@ -238,9 +257,16 @@ export default function OrderInfoPage() {
 						className='w-fit px-3 mt-2 self-center'
 						gradientDuoTone={'cyanToBlue'}
 						onClick={() => {
+							if (formik.values.realQuantity > formik.values.stock) {
+								formik.setFieldError(
+									'realQuantity',
+									'Số lượng vượt quá số lượng hiện tại của sản phẩm!'
+								);
+								return;
+							}
 							formik.values.carts.splice(
 								formik.values.carts.findIndex(
-									(cart) => cart.id === formik.cartId
+									(cart) => cart.id === formik.values.cartId
 								),
 								1,
 								{

@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
 	faChartColumn,
 	faGift, faHome,
+	faPaperPlane,
 	faPeopleArrows,
 	faReceipt,
 	faShrimp,
@@ -89,7 +90,7 @@ export default function MainSidebar(props) {
 					<Sidebar.Item
 						icon={() => <FontAwesomeIcon icon={faChartColumn} className={'w-4 h-4'} />}
 						as={Link}
-						to={'/statistic'}
+						to={'/statistic/profit'}
 						className={pathname.includes('/statistic') ? activeClassName : ''}>
 						Thống kê
 					</Sidebar.Item>

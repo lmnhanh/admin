@@ -20,6 +20,14 @@ export function ParseToDate(timestamp, mode = 0) {
 		}).format(new Date(timestamp));
 }
 
+export function FormatDateToInput(dateString){
+	var date = new Date(dateString);
+	var getYear = date.toLocaleString("default", { year: "numeric" });
+	var getMonth = date.toLocaleString("default", { month: "2-digit" });
+	var getDay = date.toLocaleString("default", { day: "2-digit" });
+	return getYear + "-" + getMonth + "-" + getDay;
+}
+
 export function FormatCurrency(number) {
 	return new Intl.NumberFormat('vi-VN', {
 		style: 'currency',

@@ -64,14 +64,14 @@ export default function TradingPartnerList({
 								textToHighlight={item.email}
 							/>
 						</Table.Cell>
-						<Table.Cell className='font-medium flex flex-wrap gap-x-2 text-gray-900'>
+						<Table.Cell className='font-medium flex flex-col gap-y-2 text-gray-900'>
 							{!item.emailConfirmed && (
 								<Badge color={'warning'}>
 									<FontAwesomeIcon
 										icon={faMailBulk}
 										className='mr-2'
 									/>
-									Đang đợi xác nhận email
+									Chưa xác nhận email
 								</Badge>
 							)}
 							{item.dateAsPartner === null ? (

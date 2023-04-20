@@ -8,8 +8,8 @@ import axios from 'axios';
 import { Badge, Card } from 'flowbite-react';
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { setAuthorized } from '../../../libs/store/slices';
-import Loader from '../../util/Loader';
+import { setAuthorized } from '../../../../libs/store/slices';
+import Loader from '../../../util/Loader';
 import { useNavigate } from 'react-router-dom';
 
 export default function OverallOrderStatus() {

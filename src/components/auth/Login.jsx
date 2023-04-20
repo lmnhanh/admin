@@ -39,7 +39,6 @@ export default function Login(props) {
 			const { status, data } = response;
 			if (status === 200) {
 				const {scope} = jwtDecode(data.access_token);
-				console.log(scope);
 				if(scope.includes('Admin')){
 					//dispatch(setToken(data.access_token));
 					//dispatch(setScope(data.scope));
@@ -113,7 +112,7 @@ export default function Login(props) {
 							type='submit'
 							gradientDuoTone={'cyanToBlue'}
 							size={'xs'}
-							className={`w-fit mt-2 self-center ${login && 'cursor-'}`}>
+							className={`w-fit mt-2 self-center cu ${login && 'cursor-wait'}`}>
 							{login && <Loader size={'xs'} className={'mr-2'}/>}Đăng nhập
 						</Button>
 					</form>

@@ -1,18 +1,19 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { FormatDateToInput } from '../helper';
 
-export const invoiceSlice = createSlice({
-	name: 'invoice',
+export const promotionSlice = createSlice({
+	name: 'promotion',
 	initialState: {
-		venderId: '',
-		productName: '0',
-		fromPrice: -1,
-		toPrice: -1,
-		fromDate: "",
-		toDate: new Date().toISOString(),
+		name: '',
+		filter: 'takingplace',
+		productId: '0',
+		fromDate: '',
+		type: '',
+		toDate: '',
 		sort: 'datecreate',
 		order: 'desc',
 		pageNo: 1,
-		pageSize: 5
+		pageSize: 10
 	},
 	reducers: {
 		setOrder: (state, action) => {
@@ -21,11 +22,14 @@ export const invoiceSlice = createSlice({
 		setSort: (state, action) => {
 			state.sort = action.payload;
 		},
-		setVenderId: (state, action) => {
-			state.venderId = action.payload;
+		setFilter: (state, action) => {
+			state.filter = action.payload;
 		},
-		setProductName: (state, action) => {
-			state.productName = action.payload;
+		setName: (state, action) => {
+			state.name = action.payload;
+		},
+		setProductId: (state, action) => {
+			state.productId = action.payload;
 		},
 		setFromDate: (state, action) => {
 			state.fromDate = action.payload;
@@ -36,26 +40,22 @@ export const invoiceSlice = createSlice({
 		setPageSize: (state, action)=>{
 			state.pageSize = action.payload;
 		},
-		setFromPrice: (state, action)=>{
-			state.fromPrice = action.payload;
-		},
 		setPageNo: (state, action)=>{
 			state.pageNo = action.payload;
 		},
-		setToPrice: (state, action)=>{
-			state.toPrice = action.payload;
+		setType: (state, action)=>{
+			state.type = action.payload;
 		},
 		setOptionToDefault: (state, action) => {
-			state.venderId = '';
-			state.productName = '0';
-			state.fromDate = "";
-			state.fromPrice = -1;
-			state.toPrice = -1;
-			state.toDate = new Date().toISOString();
+			state.filter = 'takingplace';
+			state.name = '';
+			state.productId = '0';
+			state.fromDate = '';
+			state.toDate = '';
 			state.sort = 'datecreate';
 			state.order = 'desc';
 			state.pageNo = 1;
-			state.pageSize = 5;
+			state.pageSize = 10;
 		}
 	},
 });
@@ -63,14 +63,14 @@ export const invoiceSlice = createSlice({
 export const {
 	setOrder,
 	setSort,
-	setVenderId,
+	setProductId,
+	setName,
+	setType,
 	setFromDate,
 	setToDate,
-	setProductName,
 	setOptionToDefault,
 	setPageNo,
 	setPageSize,
-	setFromPrice,
-	setToPrice
-} = invoiceSlice.actions;
-export const invoiceReducer = invoiceSlice.reducer;
+	setFilter
+} = promotionSlice.actions;
+export const promotionReducer = promotionSlice.reducer;

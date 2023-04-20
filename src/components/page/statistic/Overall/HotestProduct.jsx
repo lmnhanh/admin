@@ -2,9 +2,9 @@ import axios from 'axios';
 import { Badge, Card, Select, Table } from 'flowbite-react';
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { setAuthorized } from '../../../libs/store/slices';
-import Loader from '../../util/Loader';
-import { FormatCurrency } from '../../../libs/helper';
+import { setAuthorized } from '../../../../libs/store/slices';
+import Loader from '../../../util/Loader';
+import { FormatCurrency } from '../../../../libs/helper';
 import { Fragment } from 'react';
 
 export default function HotestProduct() {

@@ -1,4 +1,12 @@
-import { Card, Label, Button, Table, Badge, Textarea } from 'flowbite-react';
+import {
+	Card,
+	Label,
+	Button,
+	Table,
+	Badge,
+	Textarea,
+	TextInput,
+} from 'flowbite-react';
 import { useFormik } from 'formik';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -16,6 +24,7 @@ import { FormatCurrency } from '../../../libs/helper';
 import ToastPromise from '../../util/ToastPromise';
 import BreadcrumbPath from '../../util/BreadCrumbPath';
 import SelectableInput from '../../util/SelectableInput';
+import Swal from 'sweetalert2';
 export default function NewOrderPage() {
 	const [customers, setCustomers] = useState([]);
 	const [products, setProducts] = useState([]);
@@ -36,6 +45,8 @@ export default function NewOrderPage() {
 			details: [],
 			productDetailId: 0,
 			quantity: 1,
+
+			stock: 0,
 		},
 		validationSchema: yup.object({
 			quantity: yup
@@ -47,33 +58,42 @@ export default function NewOrderPage() {
 				.required('Chú thích đơn hàng không được trống!'),
 		}),
 		onSubmit: (values) => {
-			ToastPromise(
-				axios.post('/api/orders/', {
-					description: formik.values.description,
-					userId: formik.values.userId,
-					total: formik.values.total,
-					carts: formik.values.carts,
-				}),
-				{
-					pending: 'Đang thêm đơn bán hàng',
-					success: (response) => {
-						navigate(`/order/${response.data.id}`);
-						return (
-							<div>
-								Đã thêm đơn bán hàng
-								<Link to={`/order/${response.data.id}`} replace={true}>
-									<Badge size={'xs'} className='w-fit' color={'info'}>
-										Xem chi tiết
-									</Badge>
-								</Link>
-							</div>
-						);
-					},
-					error: (error) => {
-						return 'Lỗi! Không thể thêm đơn bán hàng!';
-					},
-				}
-			);
+			Swal.fire({
+				title: values.unit,
+				text: 'Xác nhận? Đơn hàng sẽ không được chỉnh sửa sau khi thêm!',
+				icon: 'question',
+				confirmButtonColor: '#108506',
+				confirmButtonText: 'Thêm đơn hàng',
+			}).then((result) => {
+				result.isConfirmed &&
+					ToastPromise(
+						axios.post('/api/orders/', {
+							description: formik.values.description,
+							userId: formik.values.userId,
+							total: formik.values.total,
+							carts: formik.values.carts,
+						}),
+						{
+							pending: 'Đang thêm đơn bán hàng',
+							success: (response) => {
+								navigate(`/order/${response.data.id}`);
+								return (
+									<div>
+										Đã thêm đơn bán hàng
+										<Link to={`/order/${response.data.id}`} replace={true}>
+											<Badge size={'xs'} className='w-fit' color={'info'}>
+												Xem chi tiết
+											</Badge>
+										</Link>
+									</div>
+								);
+							},
+							error: (error) => {
+								return 'Lỗi! Không thể thêm đơn bán hàng!';
+							},
+						}
+					);
+			});
 		},
 	});
 
@@ -88,15 +108,28 @@ export default function NewOrderPage() {
 				label: `${item.unit} (${FormatCurrency(item.wholePrice)})`,
 			}));
 			formik.values.productDetailId = data[0]?.id;
+			formik.setFieldValue('stock', data[0]?.stock);
 			setDetails(data);
 		}
 	};
 
 	const handleProductDetailChange = (detailId) => {
 		formik.values.productDetailId = detailId;
+		formik.setFieldValue(
+			'stock',
+			details[details.findIndex((detail) => detail.id === Number(detailId))]
+				.stock
+		);
 	};
 
 	const handleAddButtonClick = () => {
+		if (formik.values.quantity > formik.values.stock) {
+			formik.setFieldError(
+				'quantity',
+				'Số lượng bán vượt quá mức số lượng còn lại của sản phẩm'
+			);
+			return;
+		}
 		var existedCart = orderDetails.findIndex(
 			(cart) => cart.productDetailId === Number(formik.values.productDetailId)
 		);
@@ -285,13 +318,16 @@ export default function NewOrderPage() {
 								</select>
 							</div>
 							<div>
-								<Label htmlFor='quantity'>Số lượng bán:</Label>
-								<input
+								<Label htmlFor='quantity'>
+									Số lượng bán: tối đa {formik.values.stock} kg
+								</Label>
+								<TextInput
 									id={'quantity'}
 									title={'Đơn vị: kg'}
 									name={'quantity'}
 									sizing={'md'}
 									min={1}
+									max={formik.values.stock}
 									type={'number'}
 									value={formik.values.quantity}
 									onChange={formik.handleChange}

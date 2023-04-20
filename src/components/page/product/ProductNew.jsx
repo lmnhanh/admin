@@ -17,6 +17,7 @@ import { useEffect, useState, useRef, React, Fragment } from 'react';
 import TextEditor from '../../util/TextEditor';
 import { Link, useNavigate } from 'react-router-dom';
 import ToastPromise from '../../util/ToastPromise';
+import Swal from 'sweetalert2';
 
 export default function ProductNew() {
 	const [categories, setCategories] = useState([]);
@@ -44,47 +45,53 @@ export default function ProductNew() {
 				.required('Mã sản phẩm không được trống!'),
 		}),
 		onSubmit: async (values) => {
-			formik.values.description = quillRef.current.value.toString();
-			try {
-				ToastPromise(
-					axios.post('/api/products/', {
-						name: values.name,
-						wellKnownId: values.wellKnownId,
-						categoryId: values.categoryId,
-						description: values.description,
-						isActive: values.isActive,
-						isRecommended: values.isRecommended,
-					}),
-					{
-						pending: 'Đang thêm sản phẩm',
-						success: (response) => {
-							navigate(`/product/${response.data.id}/detail`);
-							return (
-								<div className=''>
-									Đã thêm {response.data.name}
-									<Link to={`/product/${response.data.id}`}>
-										<Badge size={'xs'} className='w-fit' color={'info'}>
-											Xem chi tiết
-										</Badge>
-									</Link>
-								</div>
-							);
-						},
-						error: (error) => {
-							if (error.response?.status === 400) {
-								let finalObj = {};
-								error.response?.data.forEach((item) =>
-									Object.assign(finalObj, item)
+			Swal.fire({
+				title: values.name,
+				text: 'Xác nhận thêm sản phẩm',
+				icon: 'question',
+				confirmButtonColor: '#108506',
+				confirmButtonText: 'Thêm',
+			}).then((result) => {
+				if (result.isConfirmed) {
+					formik.values.description = quillRef.current.value.toString();
+					ToastPromise(
+						axios.post('/api/products/', {
+							name: values.name,
+							wellKnownId: values.wellKnownId,
+							categoryId: values.categoryId,
+							description: values.description,
+							isActive: values.isActive,
+							isRecommended: values.isRecommended,
+						}),
+						{
+							pending: 'Đang thêm sản phẩm',
+							success: (response) => {
+								navigate(`/product/${response.data.id}/detail`);
+								return (
+									<div className=''>
+										Đã thêm {response.data.name}
+										<Link to={`/product/${response.data.id}`}>
+											<Badge size={'xs'} className='w-fit' color={'info'}>
+												Xem chi tiết
+											</Badge>
+										</Link>
+									</div>
 								);
-								formik.setErrors(finalObj);
-								return 'Lỗi! Không thể thêm sản phẩm!';
-							}
-						},
-					}
-				);
-			} catch (error) {
-				navigate('/');
-			}
+							},
+							error: (error) => {
+								if (error.response?.status === 400) {
+									let finalObj = {};
+									error.response?.data.forEach((item) =>
+										Object.assign(finalObj, item)
+									);
+									formik.setErrors(finalObj);
+									return 'Lỗi! Không thể thêm sản phẩm!';
+								}
+							},
+						}
+					);
+				}
+			});
 		},
 	});
 
@@ -109,10 +116,15 @@ export default function ProductNew() {
 
 	return categories.length === 0 ? (
 		<div className='self-center flex gap-2'>
-			<span className='text-lg'>Cần thêm loại sản phẩm trước khi thêm sản phẩm mới!</span>
-			<Button gradientDuoTone={'cyanToBlue'} size={'xs'} onClick={()=> navigate("/category")}>
+			<span className='text-lg'>
+				Cần thêm loại sản phẩm trước khi thêm sản phẩm mới!
+			</span>
+			<Button
+				gradientDuoTone={'cyanToBlue'}
+				size={'xs'}
+				onClick={() => navigate('/category')}>
 				Thêm ngay
-				<FontAwesomeIcon icon={faArrowRight} className={'ml-1'}/>
+				<FontAwesomeIcon icon={faArrowRight} className={'ml-1'} />
 			</Button>
 		</div>
 	) : (

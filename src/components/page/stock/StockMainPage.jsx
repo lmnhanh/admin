@@ -9,15 +9,17 @@ import {
 	Table,
 	TextInput,
 	Textarea,
+	Timeline,
 } from 'flowbite-react';
 import { Fragment, useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
 	faAngleLeft,
 	faAngleRight,
 	faBars,
 	faChartLine,
 	faHome,
+	faMoneyBill,
 	faPlus,
 	faWarning,
 } from '@fortawesome/free-solid-svg-icons';
@@ -43,6 +45,7 @@ export default function StockMainPage(props) {
 	const [pagesize, setPagesize] = useState(10);
 	const [totalPage, setTotalPage] = useState(1);
 	const [showModal, setShowModal] = useState(false);
+	const navigate = useNavigate();
 
 	const formik = useFormik({
 		initialValues: {
@@ -56,9 +59,9 @@ export default function StockMainPage(props) {
 				.number()
 				.min(0, 'Số lượng không hợp lệ')
 				.required('Số lượng còn lại không được trống!'),
-				description: yup
+			description: yup
 				.string()
-				.required('Chú thích cho cập nhật số lượng sản phẩm là bắt buộc!')
+				.required('Chú thích cho cập nhật số lượng sản phẩm là bắt buộc!'),
 		}),
 		onSubmit: async (values) => {
 			ToastPromise(axios.post('/api/stocks', values), {
@@ -66,7 +69,13 @@ export default function StockMainPage(props) {
 				success: (response) => {
 					setShowModal(false);
 					fetchProductDetails(selectedProduct);
-					fetchChanges(formik.values.productDetailId, pageNo, pagesize, fromDate, toDate);
+					fetchChanges(
+						formik.values.productDetailId,
+						pageNo,
+						pagesize,
+						fromDate,
+						toDate
+					);
 					return `Đã cập nhật số lượng sản phẩm`;
 				},
 				error: (error) => {
@@ -104,14 +113,21 @@ export default function StockMainPage(props) {
 	const handleProductChange = async (productId) => {
 		setSelectedProduct(productId);
 		setSelectedProductDetail(null);
-		fetchProductDetails(productId);
+		if (productId !== '') fetchProductDetails(productId);
+		else {
+			setProductDetails = [];
+		}
 	};
 
 	const fetchProductDetails = async (productId) => {
 		const { data, status } = await axios.get(
 			`/api/productdetails?productId=${productId}&isInStock=false`
 		);
-		status === 200 && setProductDetails(data);
+		if (status === 200 && data.length !== 0) {
+			setProductDetails(data);
+			setSelectedProductDetail(data[0]?.id);
+			fetchChanges(data[0]?.id, pageNo, pagesize, fromDate, toDate);
+		}
 	};
 
 	const fetchChanges = async (
@@ -136,7 +152,9 @@ export default function StockMainPage(props) {
 		formik.values.value = productDetails.find(
 			(product) => product.id === productDetailId
 		)?.stock;
-		fetchChanges(productDetailId, pageNo, pagesize, fromDate, toDate);
+
+		productDetailId !== '' &&
+			fetchChanges(productDetailId, pageNo, pagesize, fromDate, toDate);
 	};
 
 	useEffect(() => {
@@ -151,6 +169,10 @@ export default function StockMainPage(props) {
 						label: item.name,
 					}))
 				);
+				if (data.products.length !== 0) {
+					setSelectedProduct(data.products[0]?.id);
+					fetchProductDetails(data.products[0]?.id);
+				}
 			}
 		};
 
@@ -272,7 +294,7 @@ export default function StockMainPage(props) {
 						<Label htmlFor='products'>Sản phẩm:</Label>
 						<SelectableInput
 							id={'products`'}
-							defaultValue={{ value: 0, label: 'Chọn sản phẩm ...' }}
+							defaultValue={products[0]}
 							isSearchable={true}
 							onChange={(selected) => {
 								handleProductChange(selected.value);
@@ -316,7 +338,7 @@ export default function StockMainPage(props) {
 						)}
 					</div>
 
-					<div className='grow items-center'>
+					<div className='grow ml-4 items-center'>
 						{selectedProductDetail !== null && (
 							<div className='flex gap-x-2 mb-2'>
 								<div className='grow'>
@@ -360,7 +382,12 @@ export default function StockMainPage(props) {
 											title='Click để xem chi tiết'
 											className='bg-white mx-1 cursor-pointer hover:bg-gradient-to-r hover:from-cyan-100 hover:to-pink-100'
 											key={index}
-											onClick={() => {}}>
+											onClick={() => {
+												item.type === 'Đơn bán hàng' &&
+													navigate(`/order/${item.id}`);
+												item.type === 'Đơn nhập hàng' &&
+													navigate(`/invoice/${item.id}`);
+											}}>
 											<Table.Cell>{ParseToDate(item.dateUpdate)}</Table.Cell>
 											<Table.Cell className='whitespace-nowrap font-medium text-gray-900'>
 												{item.type}

@@ -25,6 +25,7 @@ import axios from 'axios';
 import { Fragment, useCallback, useEffect, useState } from 'react';
 import BreadcrumbPath from '../../../util/BreadCrumbPath';
 import { FormatCurrency } from '../../../../libs/helper';
+import Swal from 'sweetalert2';
 
 export default function NewProductDetail() {
 	const { id } = useParams();
@@ -74,54 +75,81 @@ export default function NewProductDetail() {
 				.required('Điều kiện không được trống!'),
 		}),
 		onSubmit: (values) => {
-			try {
-				if (editing) {
-					ToastPromise(axios.put(`/api/productdetails/${formik.values.id}`,values),{
-							pending: 'Đang cập nhật chi tiết sản phẩm',
+			if (editing) {
+				Swal.fire({
+					title: values.unit,
+					text: 'Xác nhận cập nhật chi tiết sản phẩm',
+					icon: 'question',
+					confirmButtonColor: '#3085d6',
+					confirmButtonText: 'Cập nhật',
+				}).then((result) => {
+					result.isConfirmed &&
+						ToastPromise(
+							axios.put(`/api/productdetails/${formik.values.id}`, values),
+							{
+								pending: 'Đang cập nhật chi tiết sản phẩm',
+								success: (response) => {
+									setEditing(false);
+									formik.resetForm();
+									return <div>Đã cập nhật chi tiết sản phẩm</div>;
+								},
+								error: (error) => {
+									return 'Lỗi! Không thể cập nhật chi tiết sản phẩm!';
+								},
+							}
+						);
+				});
+			} else {
+				Swal.fire({
+					title: values.unit,
+					text: 'Xác nhận thêm chi tiết sản phẩm',
+					icon: 'question',
+					confirmButtonColor: '#108506',
+					confirmButtonText: 'Thêm',
+				}).then((result) => {
+					result.isConfirmed &&
+						ToastPromise(axios.post('/api/productdetails/', values), {
+							pending: 'Đang thêm chi tiết sản phẩm',
 							success: (response) => {
-								setEditing(false);
+								console.log([...details, response.data]);
+								setDetails([...details, response.data]);
 								formik.resetForm();
-								return <div>Đã cập nhật chi tiết sản phẩm</div>;
+								return (
+									<div className=''>
+										Đã thêm loại {response.data.description}
+									</div>
+								);
 							},
 							error: (error) => {
-								return 'Lỗi! Không thể cập nhật chi tiết sản phẩm!';
+								return 'Lỗi! Không thể thêm chi tiết sản phẩm!';
 							},
-						}
-					);
-				} else {
-					ToastPromise(axios.post('/api/productdetails/', values), {
-						pending: 'Đang thêm chi tiết sản phẩm',
-						success: (response) => {
-							console.log([...details, response.data]);
-							setDetails([...details, response.data]);
-							formik.resetForm();
-							return (
-								<div className=''>Đã thêm loại {response.data.description}</div>
-							);
-						},
-						error: (error) => {
-							return 'Lỗi! Không thể thêm chi tiết sản phẩm!';
-						},
-					});
-				}
-			} catch (error) {
-				navigate('/');
+						});
+				});
 			}
 		},
 	});
 
 	const handleDelete = useCallback(async () => {
-		ToastPromise(axios.delete(`/api/productdetails/${formik.values.id}`), {
-			pending: 'Đang xóa chi tiết sản phẩm',
-			success: (response) => {
-				fetchDetails();
-				formik.resetForm();
-				setEditing(false);
-				return <div>Đã xóa chi tiết {response.data.description}</div>;
-			},
-			error: (error) => {
-				return 'Lỗi! Không thể xóa chi tiết sản phẩm!';
-			},
+		Swal.fire({
+			title: formik.values.unit,
+			text: 'Xác nhận xóa chi tiết sản phẩm',
+			icon: 'question',
+			confirmButtonColor: '#d33',
+			confirmButtonText: 'Xóa',
+		}).then((result) => {
+			result.isConfirmed &&
+				ToastPromise(axios.delete(`/api/productdetails/${formik.values.id}`), {
+					pending: 'Đang xóa chi tiết sản phẩm',
+					success: (response) => {
+						fetchDetails();
+						formik.resetForm();
+						setEditing(false);
+						return <div>Đã xóa chi tiết {response.data.description}</div>;
+					},
+					error: (error) => {
+						return 'Lỗi! Không thể xóa chi tiết sản phẩm!';
+					},
+				});
 		});
 	}, [formik.values.id]);
 

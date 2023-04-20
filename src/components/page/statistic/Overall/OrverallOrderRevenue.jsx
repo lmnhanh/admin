@@ -1,13 +1,13 @@
 import { Fragment } from 'react';
 import { useDispatch } from 'react-redux';
-import Loader from '../../util/Loader';
+import Loader from '../../../util/Loader';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Card, Badge } from 'flowbite-react';
 import { faArrowRight, faDollar } from '@fortawesome/free-solid-svg-icons';
 import { useEffect } from 'react';
-import { FormatCurrency } from '../../../libs/helper';
+import { FormatCurrency } from '../../../../libs/helper';
 import { useState } from 'react';
-import { setAuthorized } from '../../../libs/store/slices';
+import { setAuthorized } from '../../../../libs/store/slices';
 import axios from 'axios';
 
 export default function OverallOrderRevenue() {

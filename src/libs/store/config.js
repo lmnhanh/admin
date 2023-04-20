@@ -11,6 +11,7 @@ import { productReducer } from './productSlice';
 import { invoiceReducer } from "./invoiceSlice";
 import { orderReducer } from './orderSlice';
 import { partnerReducer } from './partnerSlice';
+import { promotionReducer } from './promotionSlice';
 
 const appPersistConfig = {
   key: 'app',
@@ -38,7 +39,8 @@ export const store = configureStore({
     vender: venderReducer,
     invoice: invoiceReducer,
     order: orderReducer,
-    partner: partnerReducer
+    partner: partnerReducer,
+    promotion: promotionReducer
   },
   middleware: [thunk],
   devTools: process.env.NODE_ENV !== 'production'
