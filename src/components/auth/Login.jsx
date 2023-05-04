@@ -9,10 +9,10 @@ import { setAuthorized, updateUsername } from '../../libs/store/slices';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Loader from '../util/Loader';
 import { useState } from 'react';
-import useQuery from './../util/useQuery';
+import useQuery from '../util/useQuery';
 import jwtDecode from 'jwt-decode';
 
-export default function Login(props) {
+export default function Login() {
 	const [login, setLogin] = useState(false);
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
@@ -32,7 +32,8 @@ export default function Login(props) {
 		}),
 		onSubmit: async (values) => {
 			setLogin(true)
-			const response = await axios.post('/api/authenticate/login', {
+			try{
+					const response = await axios.post('/api/authenticate/login', {
 				username: values.email,
 				password: values.password,
 			});
@@ -49,6 +50,11 @@ export default function Login(props) {
 					navigate("/notfound", { replace: true });
 				}
 			}
+			}catch{
+				formik.setFieldError('email', "Thông tin đăng nhập không chính xác")
+				setLogin(false);
+			}
+		
 		},
 	});
 	
@@ -65,6 +71,7 @@ export default function Login(props) {
 						<TextInput
 							id='email'
 							shadow
+							autoFocus
 							sizing='md'
 							type='emai'
 							name='email'

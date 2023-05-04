@@ -154,7 +154,7 @@ export default function NewInvoicePage() {
 		fetchVenders();
 		fetchProducts();
 		document.title = 'Thêm đơn nhập hàng';
-	}, [formik.values, query]);
+	}, [query]);
 
 	return (
 		<Fragment>

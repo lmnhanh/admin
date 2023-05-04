@@ -69,6 +69,10 @@ export default function OrderInfoPage() {
 				.required('Số lượng giao không được trống'),
 		}),
 		onSubmit: (values) => {
+			values.total = values.carts.reduce((total, cart) => {
+				return total + cart.price * cart.realQuantity;
+			}, 0);
+			console.log(values);
 			Swal.fire({
 				title: `Đơn cho ${order.user?.fullName ?? 'Khách vãng lai'}`,
 				text: 'Đơn hàng sẽ không được chỉnh sửa sau khi xác nhận!',
@@ -76,17 +80,18 @@ export default function OrderInfoPage() {
 				confirmButtonColor: '#108506',
 				confirmButtonText: 'Xác nhận đơn hàng',
 			}).then((result) => {
-				result.isConfirmed && ToastPromise(axios.put(`/api/orders/${id}`, values), {
-					pending: 'Đang lưu thông tin đơn hàng',
-					success: () => {
-						fetchOrder();
-						setProcessing(false);
-						return <div>Đã lưu thông tin đơn hàng</div>;
-					},
-					error: () => {
-						return 'Lỗi! Không thể lưu thông tin đơn hàng!';
-					},
-				});
+				result.isConfirmed &&
+					ToastPromise(axios.put(`/api/orders/${id}`, values), {
+						pending: 'Đang lưu thông tin đơn hàng',
+						success: () => {
+							fetchOrder();
+							setProcessing(false);
+							return <div>Đã lưu thông tin đơn hàng</div>;
+						},
+						error: () => {
+							return 'Lỗi! Không thể lưu thông tin đơn hàng!';
+						},
+					});
 			});
 		},
 	});
@@ -102,25 +107,25 @@ export default function OrderInfoPage() {
 			setOrder(data);
 			formik.values.description = data.description;
 			formik.values.userId = data.user?.id ?? null;
-			formik.values.carts = data.carts.map((detail) => ({
-				userId: detail.user?.id ?? null,
-				toWholesale: detail.productDetail.toWholesale,
-				retailPrice: detail.productDetail.retailPrice,
-				wholePrice: detail.productDetail.wholePrice,
-				id: detail.id,
-				unit: detail.productDetail.unit,
-				productName: detail.productDetail.productName,
-				stock: detail.productDetail.stock,
-				productDetailId: detail.productDetail.id,
-				price:
-					data.user === null
-						? detail.quantity >= detail.productDetail.toWholesale
-							? detail.productDetail.wholePrice
-							: detail.productDetail.retailPrice
-						: detail.productDetail.wholePrice,
-				quantity: detail.quantity,
-				realQuantity: detail.realQuantity,
-			}));
+			formik.values.carts = data.carts.map((detail) => {
+				let cart = {
+					userId: detail.userId ?? null,
+					toWholesale: detail.productDetail.toWholesale,
+					retailPrice: detail.productDetail.retailPrice,
+					wholePrice: detail.productDetail.wholePrice,
+					id: detail.id,
+					unit: detail.productDetail.unit,
+					productName: detail.productDetail.productName,
+					stock: detail.productDetail.stock,
+					productDetailId: detail.productDetail.id,
+					currentDiscount: detail.productDetail.currentDiscount,
+					price: 0,
+					quantity: detail.quantity,
+					realQuantity: detail.realQuantity,
+				};
+				cart.price = CalculatePrice(cart, cart.quantity);
+				return cart;
+			});
 		}
 	}, [id]);
 
@@ -128,12 +133,27 @@ export default function OrderInfoPage() {
 		handleToggleModal();
 		setProcessing(true);
 		setSelectedCart(cart);
-		formik.values.price = cart.price;
+		formik.values.price = CalculatePrice(cart, cart.quantity);
 		formik.values.cartId = cart.id;
 		formik.values.productDetailId = cart.productDetailId;
 		formik.values.quantity = cart.quantity;
 		formik.values.realQuantity = cart.quantity;
 		formik.values.stock = cart.stock;
+	};
+
+	const CalculatePrice = (cart, quantity) => {
+		let targetPrice =
+			cart?.userId === null
+				? quantity >= cart?.toWholesale
+					? cart?.wholePrice
+					: cart?.retailPrice
+				: cart?.wholePrice;
+
+		Number(cart?.currentDiscount) >= 0 && Number(cart?.currentDiscount) >= 100
+			? (targetPrice -= Number(cart?.currentDiscount))
+			: (targetPrice *= 1 - Number(cart?.currentDiscount) / 100);
+
+		return targetPrice;
 	};
 
 	const handleSetStatusOrder = async (orderStatus) => {
@@ -144,16 +164,17 @@ export default function OrderInfoPage() {
 			confirmButtonColor: '#108506',
 			confirmButtonText: 'Cập nhật',
 		}).then((result) => {
-			result.isConfirmed && ToastPromise(axios.post(`/api/orders/${id}?success=${orderStatus}`), {
-				pending: 'Đang lưu cập nhật trạng tháng đơn hàng',
-				success: () => {
-					fetchOrder();
-					return <div>Đã cập nhật trạng thái đơn hàng</div>;
-				},
-				error: () => {
-					return 'Lỗi! Không thể cập nhật trạng thái đơn hàng!';
-				},
-			});
+			result.isConfirmed &&
+				ToastPromise(axios.post(`/api/orders/${id}?success=${orderStatus}`), {
+					pending: 'Đang lưu cập nhật trạng tháng đơn hàng',
+					success: () => {
+						fetchOrder();
+						return <div>Đã cập nhật trạng thái đơn hàng</div>;
+					},
+					error: () => {
+						return 'Lỗi! Không thể cập nhật trạng thái đơn hàng!';
+					},
+				});
 		});
 	};
 
@@ -200,7 +221,7 @@ export default function OrderInfoPage() {
 							Số lượng sẽ giao: tối đa
 							<span className='font-semibold'>
 								{' '}
-								{Number(formik.values.stock).toFixed(2)} kg
+								{Number(selectedCart?.stock).toFixed(2)} kg
 							</span>
 						</label>
 						<TextInput
@@ -209,7 +230,13 @@ export default function OrderInfoPage() {
 							type={'number'}
 							id={'realQuantity'}
 							name={'realQuantity'}
-							onChange={formik.handleChange}
+							onChange={(e) => {
+								formik.handleChange(e);
+								setSelectedCart((prev) => {
+									prev.price = CalculatePrice(selectedCart, e.target.value);
+									return prev;
+								});
+							}}
 							value={formik.values.realQuantity}
 							placeholder={formik.values.realQuantity}
 							color={formik.errors.realQuantity && 'failure'}
@@ -227,16 +254,10 @@ export default function OrderInfoPage() {
 						<span className='grow flex gap-x-2 items-center'>
 							Đơn giá bán:{' '}
 							<span className='font-semibold'>
-								{FormatCurrency(
-									selectedCart?.user === null
-										? formik.values.realQuantity >= selectedCart?.toWholesale
-											? selectedCart?.wholePrice
-											: selectedCart?.retailPrice
-										: selectedCart?.wholePrice
-								)}
+								{FormatCurrency(selectedCart?.price)}
 							</span>
 							<Badge size={'xs'} color={'success'} className={'w-fit'}>
-								{selectedCart?.user === null
+								{selectedCart?.userId === null
 									? formik.values.realQuantity >= selectedCart?.toWholesale
 										? 'Giá sỉ'
 										: 'Giá lẻ'
@@ -247,7 +268,7 @@ export default function OrderInfoPage() {
 							Tổng:{' '}
 							<span className='font-semibold'>
 								{FormatCurrency(
-									formik.values.price * formik.values.realQuantity
+									selectedCart?.price * formik.values.realQuantity
 								)}
 							</span>
 						</span>
@@ -272,11 +293,18 @@ export default function OrderInfoPage() {
 								{
 									unit: selectedCart.unit,
 									productName: selectedCart.productName,
-									price: selectedCart.price,
+									price: CalculatePrice(
+										selectedCart,
+										selectedCart.realQuantity === 0
+											? selectedCart.quantity
+											: selectedCart.realQuantity
+									),
+									stock: selectedCart.stock,
 									retailPrice: selectedCart.retailPrice,
 									wholePrice: selectedCart.wholePrice,
 									quantity: selectedCart.quantity,
 									id: selectedCart.id,
+									currentDiscount: selectedCart.currentDiscount,
 									productDetailId: formik.values.productDetailId,
 									realQuantity: formik.values.realQuantity,
 									userId: order.user?.id ?? null,
@@ -302,14 +330,22 @@ export default function OrderInfoPage() {
 								Xử lí đơn hàng
 							</Button>
 						) : (
-							<Button
-								className='absolute top-3 right-3'
-								size={'sm'}
-								onClick={formik.handleSubmit}
-								gradientMonochrome={'success'}>
-								<FontAwesomeIcon icon={faCheckToSlot} className={'mr-1'} />
-								Xác nhận đã xử lí đơn hàng
-							</Button>
+							<div className='absolute top-3 right-3 flex gap-x-1'>
+								<Button
+									size={'xs'}
+									onClick={() => handleSetStatusOrder(false)}
+									gradientMonochrome={'failure'}>
+									<FontAwesomeIcon icon={faXmark} className={'mr-1'} />
+									Xác nhận hủy đơn hàng
+								</Button>
+								<Button
+									size={'xs'}
+									onClick={formik.handleSubmit}
+									gradientMonochrome={'success'}>
+									<FontAwesomeIcon icon={faCheckToSlot} className={'mr-1'} />
+									Xác nhận đã xử lí đơn hàng
+								</Button>
+							</div>
 						))}
 					{order.isProcessed && !order.isSuccess && (
 						<div className='absolute top-3 right-3 flex gap-x-1'>
@@ -391,14 +427,14 @@ export default function OrderInfoPage() {
 							</Badge>
 						</div>
 						{!processing ? (
-							<div className='font-semibold flex gap-x-2 items-center'>
+							<div className='font-semibold flex gap-x-2 col-span-2 items-center'>
 								Thông tin thêm:
 								<span className='text-md'>{order.description}</span>
 							</div>
 						) : (
 							<Fragment>
 								<Textarea
-									rows={4}
+									rows={7}
 									name='description'
 									maxLength={500}
 									value={formik.values.description}
@@ -449,8 +485,10 @@ export default function OrderInfoPage() {
 									<Table.Cell className='font-medium text-gray-900 flex gap-2'>
 										{FormatCurrency(item.price)}
 										<Badge size={'xs'} color={'success'} className={'w-fit'}>
-											{item?.user === null
-												? item?.realQuantity >= item?.toWholesale
+											{item?.userId === null
+												? item?.realQuantity >= item?.toWholesale ||
+												  (item?.realQuantity === 0 &&
+														item?.quantity >= item?.toWholesale)
 													? 'Giá sỉ'
 													: 'Giá lẻ'
 												: 'Giá sỉ'}

@@ -206,8 +206,7 @@ export default function PromotionInfoPage(props) {
 							<span className='text-md'>
 								{promotion.isPercentage ? (
 									<Badge color={'info'} className={'w-fit'}>
-										{promotion.discount} % tối đa{' '}
-										{FormatCurrency(promotion.maxDiscount)}
+										giảm {promotion.discount}% 
 									</Badge>
 								) : (
 									<Badge color={'info'} className={'w-fit'}>
@@ -219,12 +218,12 @@ export default function PromotionInfoPage(props) {
 						<div className={'items-center'}>
 							<span className='font-semibold'>Bắt đầu từ: </span>
 							<span className='text-md'>
-								{ParseToDate(promotion.dateStart)}
+								{ParseToDate(promotion.dateStart, 1)}
 							</span>
 						</div>
 						<div className={'items-center'}>
 							<span className='font-semibold'>Kết thúc vào: </span>
-							<span className='text-md'>{ParseToDate(promotion.dateEnd)}</span>
+							<span className='text-md'>{ParseToDate(promotion.dateEnd, 1)}</span>
 						</div>
 					</div>
 					<Table hoverable={true}>

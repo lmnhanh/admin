@@ -16,14 +16,14 @@ import { promotionReducer } from './promotionSlice';
 const appPersistConfig = {
   key: 'app',
   storage,
-  blacklist: ['toggleSidebar'],
+  blacklist: ['toggleSidebar','refresh'],
   stateReconciler: autoMergeLevel2
 }
 
 const authPersistConfig = {
   key: 'auth',
   storage: storage,
-  blacklist: ['authorized'],
+  blacklist: [],
   stateReconciler: autoMergeLevel2
 }
 

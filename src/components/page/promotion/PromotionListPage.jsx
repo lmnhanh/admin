@@ -482,7 +482,7 @@ export default function PromotionListPage() {
 							</Fragment>
 						) : (
 							<div className='text-center font-semibold'>
-								Danh sách đơn nhập trống!
+								Danh sách khuyến mãi trống!
 							</div>
 						)}
 					</Card>

@@ -31,6 +31,7 @@ export default function NewProductDetail() {
 	const { id } = useParams();
 	const [details, setDetails] = useState([]);
 	const [editing, setEditing] = useState(false);
+	const [adding, setAdding] = useState(false);
 	const navigate = useNavigate();
 	const formik = useFormik({
 		initialValues: {
@@ -111,9 +112,8 @@ export default function NewProductDetail() {
 						ToastPromise(axios.post('/api/productdetails/', values), {
 							pending: 'Đang thêm chi tiết sản phẩm',
 							success: (response) => {
-								console.log([...details, response.data]);
-								setDetails([...details, response.data]);
 								formik.resetForm();
+								setAdding(prev => !prev)
 								return (
 									<div className=''>
 										Đã thêm loại {response.data.description}
@@ -142,8 +142,8 @@ export default function NewProductDetail() {
 					pending: 'Đang xóa chi tiết sản phẩm',
 					success: (response) => {
 						fetchDetails();
-						formik.resetForm();
 						setEditing(false);
+						formik.resetForm();
 						return <div>Đã xóa chi tiết {response.data.description}</div>;
 					},
 					error: (error) => {
@@ -162,7 +162,7 @@ export default function NewProductDetail() {
 
 	useEffect(() => {
 		fetchDetails();
-	}, [fetchDetails]);
+	}, [fetchDetails, editing, adding]);
 
 	useEffect(() => {
 		document.title = 'Chi tiết sản phẩm';

@@ -7,9 +7,6 @@ import 'react-toastify/dist/ReactToastify.css';
 import Loader from './../util/Loader';
 
 export class Root extends Component {
-	componentDidMount(){
-		return <Loader/>;
-	}
 	render() {
 		return (
 			<main className='flex flex-col h-screen overflow-hidden'>

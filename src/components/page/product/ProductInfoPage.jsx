@@ -128,6 +128,12 @@ export default function ProductInfoPage(props) {
 		if (status === 200 && data) {
 			setProduct(data);
 			setDetails(data.details);
+			setImages(
+				data.images.map((item) => ({
+					original: `https://localhost:7028/api/images/get/${item.url}`,
+					thumbnail: `https://localhost:7028/api/images/get/${item.url}`,
+				}))
+			);
 			formik.setValues({
 				id: data.id,
 				name: data.name,
@@ -137,18 +143,6 @@ export default function ProductInfoPage(props) {
 				isActive: data.isActive,
 				isRecommended: data.isRecommended,
 			});
-		}
-	}, [id]);
-
-	const fetchImages = useCallback(async () => {
-		const { status, data } = await axios.get(`/api/images?productId=${id}`);
-		if (status === 200 && data.length !== 0) {
-			setImages(
-				data.map((item) => ({
-					original: `https://localhost:7028/api/images/get/${item}`,
-					thumbnail: `https://localhost:7028/api/images/get/${item}`,
-				}))
-			);
 		}
 	}, [id]);
 
@@ -175,13 +169,12 @@ export default function ProductInfoPage(props) {
 		try {
 			fetchListcategories();
 			fetchProduct();
-			fetchImages();
 		} catch (error) {
 			if (error.response.status === 401) {
 				dispatch(setAuthorized({ authorized: false }));
 			}
 		}
-	}, [id, dispatch, fetchProduct, fetchImages]);
+	}, [id, dispatch, fetchProduct]);
 
 	const handleDelete = async (id) => {
 		Swal.fire({

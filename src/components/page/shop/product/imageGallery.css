@@ -6,13 +6,6 @@
   height: 50em;
 } */
 .image-gallery-slides{
-  height: 50vh;
+  height: 100%!important;
   object-fit: cover;
 }
-/* min-height: 20em; */
-/* overflow: hidden; */
-
-/* .image-gallery-image{
-  height: 20em;
-  object-fit: contain;
-}  */

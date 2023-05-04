@@ -15,11 +15,9 @@ axios.defaults.baseURL = 'https://localhost:7028';
 
 
 root.render(
-	<React.StrictMode>
 		<Provider store={store}>
 			<PersistGate loading={<Loader/>} persistor={persistor}>
 				<App />
 			</PersistGate>
 		</Provider>
-	</React.StrictMode>
 );

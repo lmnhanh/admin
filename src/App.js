@@ -36,14 +36,20 @@ import NewPromotionPage from './components/page/promotion/NewPromotionPage';
 import PromotionListPage from './components/page/promotion/PromotionListPage';
 import PromotionInfoPage from './components/page/promotion/PromotionInfoPage';
 import ShopMainPage from './components/layout/shop/ShopMainPage';
-import { elements } from 'chart.js';
 import ShopIndex from './components/page/shop/ShopIndex';
+import ShopLogin from './components/page/shop/auth/ShopLogin';
+import ProductShopInfoPage from './components/page/shop/product/ProductShopInfoPage';
+import CartDetailPage from './components/page/shop/order/CartDetailPage';
+import CheckOutPage from './components/page/shop/order/CheckOutPage';
+import HotProduct from './components/page/shop/product/HotProduct';
+import ShopRegister from './components/page/shop/auth/ShopRegister';
+import ConfirmEmail from './components/page/shop/auth/ConfirmEmail';
 
 const router = createBrowserRouter([
 	{
 		path: '/',
 		element: (
-			<ProtectedRoute>
+			<ProtectedRoute role='Admin'>
 				<Root />
 			</ProtectedRoute>
 		),
@@ -238,6 +244,32 @@ const router = createBrowserRouter([
 			{
 				path: '/shop',
 				element: <ShopIndex />,
+				children: [
+					{
+						path: '/shop/home',
+						element: <HotProduct />,
+					},
+				],
+			},
+			{
+				path: '/shop/product/:id',
+				element: <ProductShopInfoPage />,
+			},
+			{
+				path: '/shop/cart',
+				element: <CartDetailPage />,
+			},
+			{
+				path: '/shop/order/new',
+				element: <CheckOutPage />,
+			},
+			{
+				path: '/shop/login',
+				element: <ShopLogin />,
+			},
+			{
+				path: '/shop/register',
+				element: <ShopRegister />,
 			},
 		],
 		errorElement: <NotFound404 />,

@@ -101,13 +101,6 @@ export default function MainSidebar(props) {
 						className={pathname.includes('/category') ? activeClassName : ''}>
 						Loại sản phẩm
 					</Sidebar.Item>
-					<Sidebar.Item
-						icon={() => <FontAwesomeIcon icon={faRightToBracket} />}
-						as={Link}
-						to={'/login'}
-						className={'/login' === pathname ? 'bg-blue-200' : ''}>
-						Đăng nhập
-					</Sidebar.Item>
 				</Sidebar.ItemGroup>
 			</Sidebar.Items>
 		</Sidebar>

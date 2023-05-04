@@ -29,7 +29,9 @@ import SelectableInput from '../../util/SelectableInput';
 export default function NewPromotionPage() {
 	const [products, setProducts] = useState(null);
 	const [dateStart, setDateStart] = useState(FormatDateToInput(new Date()));
-	const [dateEnd, setDateEnd] = useState(FormatDateToInput(new Date()));
+	const [dateEnd, setDateEnd] = useState(
+		FormatDateToInput(new Date().setDate(new Date().getDate() + 1))
+	);
 	const [dateStartError, setDateStartError] = useState(null);
 	const [dateEndError, setDateEndError] = useState(null);
 	const navigate = useNavigate();
@@ -42,9 +44,8 @@ export default function NewPromotionPage() {
 			dateStart: dateStart,
 			dateEnd: dateEnd,
 			isPercentage: false,
-			discount: 10,
+			discount: '5',
 			type: '',
-			maxDiscount: 0,
 			productIds: [],
 			isActive: true,
 		},
@@ -66,21 +67,18 @@ export default function NewPromotionPage() {
 				.min(1, 'Giá trị khuyến mãi không hợp lệ')
 				.required('Giá trị không được trống'),
 			productIds: yup.array().required('Sản phẩm không được trống'),
-			maxDiscount: yup
-				.number()
-				.min(0, 'Giá trị khuyến mãi tối đa không hợp lệ'),
 		}),
 		onSubmit: async (values) => {
 			if (dateStartError || dateEndError) {
 				return;
 			}
 			ToastPromise(axios.post('/api/promotions/', values), {
-				pending: 'Đang thêm sản phẩm',
+				pending: 'Đang thêm khuyến mãi',
 				success: (response) => {
-					// navigate(`/product/${response.data.id}/detail`);
+					formik.resetForm();
 					return (
 						<div className=''>
-							Đã thêm {response.data.name}
+							Đã thêm khuyến mãi {response.data.name}
 							<Link to={`/promotion/${response.data.id}`}>
 								<Badge size={'xs'} className='w-fit' color={'info'}>
 									Xem chi tiết
@@ -101,7 +99,9 @@ export default function NewPromotionPage() {
 	useEffect(() => {
 		document.title = 'Thêm khuyến mãi mới';
 		const fetchProducts = async () => {
-			const { status, data } = await axios.get('/api/products?page=0&hasPromotion=false');
+			const { status, data } = await axios.get(
+				'/api/products?page=0&hasPromotion=false'
+			);
 			if (status === 200) {
 				setProducts(
 					data.products.map((item) => ({
@@ -286,11 +286,14 @@ export default function NewPromotionPage() {
 											name={'type'}
 											onChange={(event) => {
 												formik.handleChange(event);
-												formik.setFieldValue('isPercentage', event.target.value === 'percent')
+												formik.setFieldValue(
+													'isPercentage',
+													event.target.value === 'percent'
+												);
 												if (event.target.value === 'percent') {
-													formik.setFieldValue('discount', 10);
-												} else {
-													formik.setFieldValue('maxDiscount', 0);
+													formik.setFieldValue('discount', 5);
+												}else{
+													formik.setFieldValue('discount', 1000);
 												}
 											}}
 											value={formik.values.type}>
@@ -304,7 +307,8 @@ export default function NewPromotionPage() {
 									</div>
 									<div>
 										<Label htmlFor='discount'>
-											Giá trị khuyến mãi: <span className='text-red-500'>*</span> (% hoặc VNĐ)
+											Giá trị khuyến mãi:{' '}
+											<span className='text-red-500'>*</span> (% hoặc VNĐ)
 										</Label>
 										<TextInput
 											sizing={'md'}
@@ -314,11 +318,9 @@ export default function NewPromotionPage() {
 											name={'discount'}
 											onChange={(event) => {
 												formik.handleChange(event);
-												if (
-													formik.values.type === 'percent' &&
-													event.target.value > 100
-												) {
-													formik.setFieldValue('discount', 10);
+												if (formik.values.type === 'percent') {
+													event.target.value > 100 &&
+														formik.setFieldValue('discount', 5);
 												}
 											}}
 											value={formik.values.discount}
@@ -337,7 +339,7 @@ export default function NewPromotionPage() {
 											}
 										/>
 									</div>
-									<div>
+									{/* <div>
 										<Label htmlFor='maxDiscount'>
 											Giá trị khuyến mãi tối đa: (VNĐ)
 										</Label>
@@ -364,8 +366,8 @@ export default function NewPromotionPage() {
 												)
 											}
 										/>
-									</div>
-									<div className='col-span-1 lg:col-span-2'>
+									</div> */}
+									<div className='col-span-2 lg:col-span-3'>
 										<Label htmlFor='maxDiscount'>
 											Sản phẩm áp dụng:<span className='text-red-500'>*</span>
 										</Label>
@@ -420,7 +422,19 @@ export default function NewPromotionPage() {
 									</div>
 								</div>
 								<Button
-									onClick={formik.handleSubmit}
+									onClick={(event) => {
+										if (formik.values.type !== 'percent') {
+											if (formik.values.discount < 1000) {
+												formik.setFieldError('discount', 'Giá trị khuyến mãi phải trên 1000 VNĐ')
+												return;
+											}
+										}
+										if (formik.values.productIds.length === 0) {
+											formik.setFieldError('productIds', 'Sản phẩm áp dụng khuyến mãi là bắt buộc')
+											return;
+										}
+										formik.handleSubmit(event);
+									}}
 									gradientDuoTone={'cyanToBlue'}
 									className='w-fit shadow-md self-center px-2'
 									size={'xs'}>

@@ -45,7 +45,7 @@ export default function PromotionList({ data, offset, highlightText }) {
 							<Table.Cell className='whitespace-nowrap font-medium text-gray-900'>
 								{item.isPercentage ? (
 									<Badge color={'info'} className={'w-fit'}>
-										{item.discount} % tối đa {FormatCurrency(item.maxDiscount)}
+										{item.discount}%
 									</Badge>
 								) : (
 									<Badge color={'info'} className={'w-fit'}>
@@ -60,8 +60,8 @@ export default function PromotionList({ data, offset, highlightText }) {
 										Không khả dụng
 									</Badge>
 								)}
-								{new Date(item.dateStart) <= new Date() &&
-									new Date(item.dateEnd) >= new Date() && (
+								{new Date(item.dateStart)<= new Date() &&
+									new Date(item.dateEnd) >= new Date() &&(
 										<Badge color={'success'} className={'w-fit min-w-fit'}>
 											<FontAwesomeIcon icon={faCheck} className={'mr-1'} />
 											Đang áp dụng
